@@ -3,7 +3,7 @@ import axios from "axios";
 import { Pencil, Trash2, User, Check, X, Search, MapPin, Phone, UserCircle2, AlignJustify, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8080/api/v1";
+const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
 
 function DireccionFormModal({ open, onClose, onSubmit, direccion }) {
   const [form, setForm] = useState({

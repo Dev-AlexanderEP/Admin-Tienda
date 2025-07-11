@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "http://localhost:8080/api/v1";
+const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
 
 export default function PrendaUpdateFormModal({
   open,
@@ -11,6 +11,8 @@ export default function PrendaUpdateFormModal({
   prenda,
   marcas,
   proveedores,
+  categorias,
+  generos,
   onUpdated,
 }) {
   const [form, setForm] = useState({
@@ -18,6 +20,8 @@ export default function PrendaUpdateFormModal({
     descripcion: "",
     marcaId: "",
     proveedorId: "",
+    categoriaId: "",
+    generoId: "",
     precio: "",
     activo: true,
   });
@@ -34,6 +38,8 @@ export default function PrendaUpdateFormModal({
         descripcion: prenda.descripcion || "",
         marcaId: prenda.marca?.id || "",
         proveedorId: prenda.proveedor?.id || "",
+        categoriaId: prenda.categoria?.id || "",
+        generoId: prenda.genero?.id || "",
         precio: prenda.precio || "",
         activo: prenda.activo ?? true,
       });
@@ -113,14 +119,16 @@ export default function PrendaUpdateFormModal({
       }
 
       // Construir body con los datos editables y los que no cambian
+      // PrendaRequestDto con todos los campos
       const body = {
         id: prenda.id,
         nombre: form.nombre,
         descripcion: form.descripcion,
         imagenId: prenda.imagen?.id,
         marcaId: Number(form.marcaId),
-        categoriaId: prenda.categoria?.id,
+        categoriaId: Number(form.categoriaId),
         proveedorId: Number(form.proveedorId),
+        generoId: Number(form.generoId),
         precio: Number(form.precio),
         activo: !!form.activo,
       };
@@ -179,39 +187,76 @@ export default function PrendaUpdateFormModal({
                 required
               />
             </div>
-            <div>
-              <label className="text-sm font-semibold">Marca</label>
-              <select
-                name="marcaId"
-                value={form.marcaId}
-                onChange={handleInputChange}
-                className="w-full border rounded px-2 py-1"
-                required
-              >
-                <option value="">Selecciona</option>
-                {marcas.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nomMarca}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-semibold">Proveedor</label>
-              <select
-                name="proveedorId"
-                value={form.proveedorId}
-                onChange={handleInputChange}
-                className="w-full border rounded px-2 py-1"
-                required
-              >
-                <option value="">Selecciona</option>
-                {proveedores.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nomProveedor}
-                  </option>
-                ))}
-              </select>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-sm font-semibold">Categoría</label>
+                <select
+                  name="categoriaId"
+                  value={form.categoriaId}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-2 py-1"
+                  required
+                >
+                  <option value="">Selecciona</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nomCategoria}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-semibold">Marca</label>
+                <select
+                  name="marcaId"
+                  value={form.marcaId}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-2 py-1"
+                  required
+                >
+                  <option value="">Selecciona</option>
+                  {marcas.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nomMarca}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-semibold">Proveedor</label>
+                <select
+                  name="proveedorId"
+                  value={form.proveedorId}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-2 py-1"
+                  required
+                >
+                  <option value="">Selecciona</option>
+                  {proveedores.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nomProveedor}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-semibold">Género</label>
+                <select
+                  name="generoId"
+                  value={form.generoId}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-2 py-1"
+                  required
+                >
+                  <option value="">Selecciona</option>
+                  {generos &&
+                    generos.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.nomGenero}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
             <div>
               <label className="text-sm font-semibold">Precio</label>

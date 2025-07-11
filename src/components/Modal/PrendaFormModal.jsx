@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Shirt, Check, UploadCloud } from "lucide-react";
 import axios from "axios";
 
-const API = "http://localhost:8080/api/v1";
+const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
 
 export default function PrendaFormModal({
   open,
@@ -12,6 +12,7 @@ export default function PrendaFormModal({
   categorias,
   marcas,
   proveedores,
+  generos,
 }) {
   const [form, setForm] = useState({
     nombre: "",
@@ -21,6 +22,7 @@ export default function PrendaFormModal({
     categoriaId: "",
     marcaId: "",
     proveedorId: "",
+    generoId: "",
     imagenId: null,
   });
 
@@ -62,6 +64,7 @@ export default function PrendaFormModal({
         categoriaId: "",
         marcaId: "",
         proveedorId: "",
+        generoId: "",
         imagenId: null,
       });
       setImgFiles({
@@ -133,10 +136,10 @@ export default function PrendaFormModal({
   // Validate file upload (maxSize in MB)
   const validateFile = (file, type) => {
     if (!file) return true;
-    if (type === "video" && file.size > 5 * 1024 * 1024)
-      return "El video no debe superar 5MB";
-    if (type !== "video" && file.size > 3 * 1024 * 1024)
-      return "Las imágenes no deben superar 3MB";
+    if (file.size > 10 * 1024 * 1024)
+      return type === "video"
+        ? "El video no debe superar 10MB"
+        : "Las imágenes no deben superar 10MB";
     return true;
   };
 
@@ -164,19 +167,18 @@ export default function PrendaFormModal({
   };
 
   // Upload images/videos and get imagenId
-  const handleUploadImagen = async () => {
+    const handleUploadImagen = async () => {
     if (
       !imgFiles.principal ||
       !imgFiles.hover ||
       !imgFiles.img1 ||
-      !imgFiles.img2 ||
-      !imgFiles.video
+      !imgFiles.img2 
     ) {
-      alert("Debes subir todas las imágenes y el video");
+      alert("Debes subir todas las imágenes");
       return false;
     }
     setImagenUploading(true);
-
+  
     try {
       // Obtener la subcarpeta y nombre base según el form
       const categoria =
@@ -187,7 +189,7 @@ export default function PrendaFormModal({
       const nombreBase = form.nombre
         ? form.nombre.trim().replace(/\s+/g, "-")
         : "imagen";
-
+  
       // Subir cada archivo y obtener url
       const principalUrl = await uploadArchivo(
         imgFiles.principal,
@@ -209,13 +211,18 @@ export default function PrendaFormModal({
         `${catName}/${nombreBase}`,
         `${nombreBase}T.webp`
       );
-      const videoExt = imgFiles.video.name.split('.').pop();
-      const videoUrl = await uploadArchivo(
-        imgFiles.video,
-        `${catName}/${nombreBase}`,
-        `${nombreBase}V.${videoExt}`
-      );
-
+      
+      // Subir video solo si existe
+      let videoUrl = null;
+      if (imgFiles.video) {
+        const videoExt = imgFiles.video.name.split('.').pop();
+        videoUrl = await uploadArchivo(
+          imgFiles.video,
+          `${catName}/${nombreBase}`,
+          `${nombreBase}V.${videoExt}`
+        );
+      }
+  
       // Crear la imagen en la BD
       const imagenData = {
         principal: principalUrl,
@@ -224,7 +231,7 @@ export default function PrendaFormModal({
         img2: img2Url,
         video: videoUrl,
       };
-
+  
       const res = await axios.post(`${API}/imagen`, imagenData);
       setImagenUploading(false);
       if (res.data.object && res.data.object.id) {
@@ -240,7 +247,6 @@ export default function PrendaFormModal({
       return false;
     }
   };
-
   const handleInputChange = (e) => {
     const { name, value, type: inputType, checked } = e.target;
     setForm((prev) => ({
@@ -258,7 +264,7 @@ export default function PrendaFormModal({
       if (!imagenId) return; // Abort if error
     }
 
-    // 2. Crear prenda
+    // 2. Crear prenda (PrendaRequestDto)
     try {
       const body = {
         nombre: form.nombre,
@@ -267,6 +273,7 @@ export default function PrendaFormModal({
         marcaId: Number(form.marcaId),
         categoriaId: Number(form.categoriaId),
         proveedorId: Number(form.proveedorId),
+        generoId: Number(form.generoId),
         precio: Number(form.precio),
         activo: !!form.activo,
       };
@@ -376,6 +383,24 @@ export default function PrendaFormModal({
                   ))}
                 </select>
               </div>
+              <div className="flex-1">
+                <label className="text-sm font-semibold">Género</label>
+                <select
+                  required
+                  name="generoId"
+                  value={form.generoId}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="">Selecciona</option>
+                  {generos &&
+                    generos.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.nomGenero}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
             <div>
               <label className="text-sm font-semibold">Precio</label>
@@ -405,7 +430,7 @@ export default function PrendaFormModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold">
-                  Imagen Principal (máx 3MB)
+                  Imagen Principal (máx 10MB)
                 </label>
                 <input
                   type="file"
@@ -426,7 +451,7 @@ export default function PrendaFormModal({
               </div>
               <div>
                 <label className="text-sm font-semibold">
-                  Imagen Hover (máx 3MB)
+                  Imagen Hover (máx 10MB)
                 </label>
                 <input
                   type="file"
@@ -447,7 +472,7 @@ export default function PrendaFormModal({
               </div>
               <div>
                 <label className="text-sm font-semibold">
-                  Imagen Secundaria (máx 3MB)
+                  Imagen Secundaria (máx 10MB)
                 </label>
                 <input
                   type="file"
@@ -468,7 +493,7 @@ export default function PrendaFormModal({
               </div>
               <div>
                 <label className="text-sm font-semibold">
-                  Imagen Terciaria (máx 3MB)
+                  Imagen Terciaria (máx 10MB)
                 </label>
                 <input
                   type="file"
@@ -489,12 +514,12 @@ export default function PrendaFormModal({
               </div>
               <div>
                 <label className="text-sm font-semibold">
-                  Video (máx 5MB)
+                  Video (máx 10MB)
                 </label>
                 <input
                   type="file"
                   accept="video/*"
-                  required
+                  
                   onChange={(e) => handleFileChange(e, "video")}
                 />
                 {imgPreview.video && (

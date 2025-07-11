@@ -18,8 +18,8 @@ import PrendaFormModal from "../Modal/PrendaFormModal";
 import ImagenesModal from "../Modal/ImagenesModal";
 import PrendaUpdateFormModal from "../Modal/PrendaUpdateFormModal"; // Nuevo componente para editar
 
-const API = "http://localhost:8080/api/v1";
-const IMG_BASE = "http://localhost:8080/";
+const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
+const IMG_BASE = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/";
 
 export default function PrendaCrud() {
   const [prendas, setPrendas] = useState([]);
@@ -41,6 +41,7 @@ export default function PrendaCrud() {
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
   const [proveedores, setProveedores] = useState([]);
+  const [generos, setGeneros] = useState([]);
 
   // Animaciones para tabla
   const tableVariants = {
@@ -56,18 +57,22 @@ export default function PrendaCrud() {
         { data: dataMarcas },
         { data: dataCategorias },
         { data: dataProveedores },
+        { data: dataGeneros },
       ] = await Promise.all([
         axios.get(`${API}/marcas`),
         axios.get(`${API}/categorias`),
         axios.get(`${API}/proveedores`),
+        axios.get(`${API}/generos`),
       ]);
       setMarcas(Array.isArray(dataMarcas.object) ? dataMarcas.object : []);
       setCategorias(Array.isArray(dataCategorias.object) ? dataCategorias.object : []);
       setProveedores(Array.isArray(dataProveedores.object) ? dataProveedores.object : []);
+      setGeneros(Array.isArray(dataGeneros.object) ? dataGeneros.object : []);
     } catch (e) {
       setMarcas([]);
       setCategorias([]);
       setProveedores([]);
+      setGeneros([]);
     }
   };
 
@@ -124,34 +129,34 @@ export default function PrendaCrud() {
   };
 
   // ELIMINAR Prenda y carpeta de imágenes
-  // ELIMINAR Prenda y carpeta de imágenes
-const handleDelete = async (prenda) => {
-  if (
-    !window.confirm(
-      "¿Seguro que quieres eliminar esta prenda? Se eliminarán también las imágenes."
+  const handleDelete = async (prenda) => {
+    if (
+      !window.confirm(
+        "¿Seguro que quieres eliminar esta prenda? Se eliminarán también las imágenes."
+      )
     )
-  )
-    return;
-  try {
-    // 1. Elimina la carpeta de imágenes (ruta relativa extraída de la imagen principal)
-    if (prenda?.imagen?.principal) {
-      let path = prenda.imagen.principal.replace(/^\/?uploads\//, "");
-      let arr = path.split("/");
-      arr.pop(); // quita el archivo
-      const carpetaRel = arr.join("/"); // ejemplo: "Casacas/123312"
-      if (carpetaRel) {
-        await axios.delete(`${API}/archivos/eliminar-carpeta`, {
-          params: { rutaRelativa: carpetaRel },
-        });
+      return;
+    try {
+      // 1. Elimina la carpeta de imágenes (ruta relativa extraída de la imagen principal)
+      if (prenda?.imagen?.principal) {
+        let path = prenda.imagen.principal.replace(/^\/?uploads\//, "");
+        let arr = path.split("/");
+        arr.pop(); // quita el archivo
+        const carpetaRel = arr.join("/"); // ejemplo: "Casacas/123312"
+        if (carpetaRel) {
+          await axios.delete(`${API}/archivos/eliminar-carpeta`, {
+            params: { rutaRelativa: carpetaRel },
+          });
+        }
       }
+      // 2. Elimina la prenda
+      await axios.delete(`${API}/prenda/${prenda.id}`);
+      fetchPrendas(page);
+    } catch (e) {
+      alert("Error eliminando prenda");
     }
-    // 2. Elimina la prenda
-    await axios.delete(`${API}/prenda/${prenda.id}`);
-    fetchPrendas(page);
-  } catch (e) {
-    alert("Error eliminando prenda");
-  }
-};
+  };
+
   const sortedPrendas = [...prendas].sort((a, b) => a.id - b.id);
 
   return (
@@ -188,6 +193,7 @@ const handleDelete = async (prenda) => {
                 <th className="py-2 px-4 text-left">Marca</th>
                 <th className="py-2 px-4 text-left">Categoría</th>
                 <th className="py-2 px-4 text-left">Proveedor</th>
+                <th className="py-2 px-4 text-left">Género</th>
                 <th className="py-2 px-4 text-left">Precio</th>
                 <th className="py-2 px-4 text-left">Activo</th>
                 <th className="py-2 px-4 text-left">Imágenes</th>
@@ -198,13 +204,13 @@ const handleDelete = async (prenda) => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="py-6 text-center">
+                  <td colSpan={12} className="py-6 text-center">
                     Cargando...
                   </td>
                 </tr>
               ) : sortedPrendas.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-6 text-center">
+                  <td colSpan={12} className="py-6 text-center">
                     Sin prendas
                   </td>
                 </tr>
@@ -224,6 +230,7 @@ const handleDelete = async (prenda) => {
                     <td className="py-2 px-4">{p.marca?.nomMarca}</td>
                     <td className="py-2 px-4">{p.categoria?.nomCategoria}</td>
                     <td className="py-2 px-4">{p.proveedor?.nomProveedor}</td>
+                    <td className="py-2 px-4">{p.genero?.nomGenero}</td>
                     <td className="py-2 px-4">
                       <span className="flex items-center gap-1">
                         <DollarSign className="h-4 w-4" /> {p.precio}
@@ -316,6 +323,7 @@ const handleDelete = async (prenda) => {
         categorias={categorias}
         marcas={marcas}
         proveedores={proveedores}
+        generos={generos}
       />
       {/* Modal para editar prenda */}
       <PrendaUpdateFormModal
@@ -324,6 +332,8 @@ const handleDelete = async (prenda) => {
         prenda={editModal.prenda}
         marcas={marcas}
         proveedores={proveedores}
+        categorias={categorias}
+        generos={generos}
         onUpdated={handleUpdate}
       />
       {/* Modal imágenes */}
