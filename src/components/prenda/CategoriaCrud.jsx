@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
+const API = "/api/v1";
 
 function CategoriaFormModal({ open, onClose, onSubmit, categoria }) {
   const [form, setForm] = useState({

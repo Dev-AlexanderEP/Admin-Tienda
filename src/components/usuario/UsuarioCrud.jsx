@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
+const API = "/api/v1";
 
 function UsuarioFormModal({ open, onClose, onSubmit, usuario }) {
   const [form, setForm] = useState({
@@ -206,7 +206,7 @@ export default function UsuarioCrud() {
     if (searchNombre) params.nombreUsuario = searchNombre;
     if (searchEmail) params.email = searchEmail;
 
-    const { data } = await axios.get(`${API}/usuarios/buscar`, { params });
+    const { data } = await axios.get(`${API}/usuarios`, { params });
 
     // El array viene en data.object
     if (Array.isArray(data.object)) {
@@ -230,7 +230,7 @@ export default function UsuarioCrud() {
   const fetchUsuarios = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/usuarios-page?page=${page}`);
+      const { data } = await axios.get(`${API}/usuarios`);
       setUsuarios(data.content);
       setTotalPages(data.totalPages);
       setPage(data.number);

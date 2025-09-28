@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
+const API = "/api/v1";
 
 export default function PrendaUpdateFormModal({
   open,

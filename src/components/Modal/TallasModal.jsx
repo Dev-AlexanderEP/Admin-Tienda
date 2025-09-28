@@ -3,7 +3,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers, Pencil, Plus, Check, Trash2 } from "lucide-react";
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
+const API = "/api/v1";
 
 // Modal para visualizar y CRUD de PrendaTalla
 export default function TallasModal({ open, onClose, tallas, prendaId }) {

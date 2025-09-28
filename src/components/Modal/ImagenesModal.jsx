@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
-const IMG_BASE = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/";
+const API = "/api/v1";
+const IMG_BASE = "/";
 
 export default function ImagenesModal({ open, onClose, imagen }) {
   // State para inputs de archivo y previews

@@ -18,8 +18,8 @@ import PrendaFormModal from "../Modal/PrendaFormModal";
 import ImagenesModal from "../Modal/ImagenesModal";
 import PrendaUpdateFormModal from "../Modal/PrendaUpdateFormModal"; // Nuevo componente para editar
 
-const API = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/api/v1";
-const IMG_BASE = "https://sv-02udg1brnilz4phvect8.cloud.elastika.pe/api-tienda/";
+const API = "/api/v1";
+const IMG_BASE = "/";
 
 export default function PrendaCrud() {
   const [prendas, setPrendas] = useState([]);
