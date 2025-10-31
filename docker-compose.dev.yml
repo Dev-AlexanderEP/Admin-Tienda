@@ -1,14 +1,17 @@
 services:
   web:
     image: node:20-alpine
+    container_name: admin-tienda-web   # opcional, solo para que sea fácil de identificar
+
     working_dir: /app
     ports:
       - "5174:5174"     # Vite
     environment:
       CHOKIDAR_USEPOLLING: "true"      # WSL/Windows: mejor detección
       WATCHPACK_POLLING: "true"
-      DOCKER_ENV: "true"               # Indica que está ejecutándose en Docker
-      BACKEND_IP: ${BACKEND_IP:-172.21.0.4}
+      DOCKER_ENV: "true"     
+      VITE_DOCKER_ENV: "true"  # Cambiar de DOCKER_ENV a VITE_DOCKER_ENV          # Indica que está ejecutándose en Docker
+      BACKEND_IP: ${BACKEND_IP}
       # VITE_API_URL: "http://localhost:8080"  # ej. para tu backend
     volumes:
       - ./:/app

@@ -4,7 +4,7 @@ import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
 import axios from "axios";
 
 const API = "/api/v1";
-const IMG_BASE = "/";
+const IMG_BASE = "http://localhost:8080/"; // Cambia si es necesario
 
 export default function ImagenesModal({ open, onClose, imagen }) {
   // State para inputs de archivo y previews
@@ -51,7 +51,8 @@ export default function ImagenesModal({ open, onClose, imagen }) {
       return;
     }
     // Quita el prefijo "/uploads/"
-    path = path.replace(/^\/uploads\//, "");
+    path = path.replace(/^\/app\/uploads\/uploads\//, "").replace(/^uploads\//, "");
+
     const parts = path.split("/");
     const subcarpeta = parts.slice(0, -1).join("/");
     const nombreArchivo = parts[parts.length - 1];

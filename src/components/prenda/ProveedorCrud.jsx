@@ -153,6 +153,7 @@ export default function ProveedorCrud() {
     try {
       if (editProveedor) {
         // PUT para actualizar
+        console.log("Actualizado:", editProveedor.id, form);
         await axios.put(`${API}/proveedor/${editProveedor.id}`, form);
       } else {
         // POST para crear
