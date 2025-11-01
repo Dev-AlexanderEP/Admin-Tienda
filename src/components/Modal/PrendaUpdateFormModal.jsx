@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
+// const API = "https://mixmatch.zapto.org/api/v1";
+
 
 export default function PrendaUpdateFormModal({
   open,
@@ -26,6 +28,7 @@ export default function PrendaUpdateFormModal({
     activo: true,
   });
   const [loading, setLoading] = useState(false);
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Para saber si renombrar carpeta
   const [nombreAntiguo, setNombreAntiguo] = useState("");
@@ -92,6 +95,9 @@ export default function PrendaUpdateFormModal({
             nombreAntiguo,
             nombreNuevo: nuevoNombreCarpeta,
           },
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
         });
         hizoRenombrado = true;
       }
@@ -133,7 +139,11 @@ export default function PrendaUpdateFormModal({
         activo: !!form.activo,
       };
 
-      await axios.put(`${API}/prenda/${prenda.id}`, body);
+      await axios.put(`${API}/prenda/${prenda.id}`, body, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
+      });
       if (typeof onUpdated === "function") onUpdated();
       onClose();
     } catch (e) {

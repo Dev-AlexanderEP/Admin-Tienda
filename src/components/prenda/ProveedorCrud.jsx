@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
 
 function ProveedorFormModal({ open, onClose, onSubmit, proveedor }) {
   const [form, setForm] = useState({
@@ -119,6 +119,7 @@ export default function ProveedorCrud() {
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
+  const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Fetch paginado
   const fetchProveedores = async (page = 0) => {
@@ -126,6 +127,9 @@ export default function ProveedorCrud() {
     try {
       const { data } = await axios.get(`${API}/proveedores/paginado`, {
         params: { page, size: 10 },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
       });
       if (data.object && Array.isArray(data.object.content)) {
         setProveedores(data.object.content);
@@ -154,10 +158,18 @@ export default function ProveedorCrud() {
       if (editProveedor) {
         // PUT para actualizar
         console.log("Actualizado:", editProveedor.id, form);
-        await axios.put(`${API}/proveedor/${editProveedor.id}`, form);
+        await axios.put(`${API}/proveedor/${editProveedor.id}`, form, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
       } else {
         // POST para crear
-        await axios.post(`${API}/proveedor`, form);
+        await axios.post(`${API}/proveedor`, form, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
       }
       setModalOpen(false);
       setEditProveedor(null);
@@ -170,7 +182,11 @@ export default function ProveedorCrud() {
   const handleDelete = async (proveedor) => {
     if (window.confirm(`¿Eliminar proveedor "${proveedor.nomProveedor}"?`)) {
       try {
-        await axios.delete(`${API}/proveedor/${proveedor.id}`);
+        await axios.delete(`${API}/proveedor/${proveedor.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
         fetchProveedores(page);
       } catch (e) {
         alert("Error eliminando proveedor");

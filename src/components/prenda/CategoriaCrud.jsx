@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "/api/v1";
+// const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
 
 function CategoriaFormModal({ open, onClose, onSubmit, categoria }) {
   const [form, setForm] = useState({
@@ -119,6 +120,7 @@ export default function CategoriaCrud() {
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
+  const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Fetch paginado
   const fetchCategorias = async (page = 0) => {
@@ -126,6 +128,9 @@ export default function CategoriaCrud() {
     try {
       const { data } = await axios.get(`${API}/categorias/paginado`, {
         params: { page, size: 10 },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
       });
       if (data.object && Array.isArray(data.object.content)) {
         setCategorias(data.object.content);
@@ -153,10 +158,18 @@ export default function CategoriaCrud() {
     try {
       if (editCategoria) {
         // PUT para actualizar
-        await axios.put(`${API}/categoria/${editCategoria.id}`, form);
+        await axios.put(`${API}/categoria/${editCategoria.id}`, form, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization  
+          },
+        });
       } else {
         // POST para crear
-        await axios.post(`${API}/categoria`, form);
+        await axios.post(`${API}/categoria`, form, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
       }
       setModalOpen(false);
       setEditCategoria(null);
@@ -169,7 +182,11 @@ export default function CategoriaCrud() {
   const handleDelete = async (categoria) => {
     if (window.confirm(`¿Eliminar categoría "${categoria.nomCategoria}"?`)) {
       try {
-        await axios.delete(`${API}/categoria/${categoria.id}`);
+        await axios.delete(`${API}/categoria/${categoria.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
         fetchCategorias(page);
       } catch (e) {
         alert("Error eliminando categoría");

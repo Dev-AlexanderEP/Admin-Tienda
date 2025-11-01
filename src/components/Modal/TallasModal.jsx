@@ -3,7 +3,9 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers, Pencil, Plus, Check, Trash2 } from "lucide-react";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
+// const API = "https://mixmatch.zapto.org/api/v1";
+
 
 // Modal para visualizar y CRUD de PrendaTalla
 export default function TallasModal({ open, onClose, tallas, prendaId }) {
@@ -12,6 +14,7 @@ export default function TallasModal({ open, onClose, tallas, prendaId }) {
   const [localTallas, setLocalTallas] = useState([]);
   const [tallasOptions, setTallasOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Sincroniza tallas iniciales
   useEffect(() => {
@@ -27,7 +30,11 @@ export default function TallasModal({ open, onClose, tallas, prendaId }) {
   // Obtener opciones de tallas
   const fetchTallasOptions = async () => {
     try {
-      const { data } = await axios.get(`${API}/tallas`);
+      const { data } = await axios.get(`${API}/tallas`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Incluir el token en el encabezado
+        },
+      });
       setTallasOptions(Array.isArray(data.object) ? data.object : []);
     } catch {
       setTallasOptions([]);
@@ -46,7 +53,11 @@ export default function TallasModal({ open, onClose, tallas, prendaId }) {
           tallaId: form.tallaId,
           stock: form.stock,
         };
-        const { data } = await axios.put(`${API}/prenda-talla/${form.id}`, body);
+        const { data } = await axios.put(`${API}/prenda-talla/${form.id}`, body, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Incluir el token en el encabezado
+          },
+        });
         setLocalTallas((prev) =>
           prev.map((t) =>
             t.id === data.object.id
@@ -61,7 +72,11 @@ export default function TallasModal({ open, onClose, tallas, prendaId }) {
           tallaId: form.tallaId,
           stock: form.stock,
         };
-        const { data } = await axios.post(`${API}/prenda-talla`, body);
+        const { data } = await axios.post(`${API}/prenda-talla`, body, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Incluir el token en el encabezado
+          },
+        });
         setLocalTallas((prev) => [
           ...prev,
           { ...data.object, talla: tallasOptions.find((ta) => ta.id === data.object.tallaId) },
@@ -80,7 +95,11 @@ export default function TallasModal({ open, onClose, tallas, prendaId }) {
     if (!window.confirm("¿Seguro que quieres eliminar esta talla?")) return;
     setLoading(true);
     try {
-      await axios.delete(`${API}/prenda-talla/${id}`);
+      await axios.delete(`${API}/prenda-talla/${id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Incluir el token en el encabezado
+        },
+      });
       setLocalTallas((prev) => prev.filter((t) => t.id !== id));
     } catch (e) {
       alert("Error eliminando talla.");

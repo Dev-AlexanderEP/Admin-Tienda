@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
 
 function MarcaFormModal({ open, onClose, onSubmit, marca }) {
   const [form, setForm] = useState({
@@ -119,6 +119,7 @@ export default function MarcaCrud() {
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
+  const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Fetch paginado
   const fetchMarcas = async (page = 0) => {
@@ -126,6 +127,9 @@ export default function MarcaCrud() {
     try {
       const { data } = await axios.get(`${API}/marcas/paginado`, {
         params: { page, size: 10 },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
       });
       if (data.object && Array.isArray(data.object.content)) {
         setMarcas(data.object.content);
@@ -153,10 +157,18 @@ export default function MarcaCrud() {
     try {
       if (editMarca) {
         // PUT para actualizar
-        await axios.put(`${API}/marca/${editMarca.id}`, form);
+        await axios.put(`${API}/marca/${editMarca.id}`, form,{
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
       } else {
         // POST para crear
-        await axios.post(`${API}/marca`, form);
+        await axios.post(`${API}/marca`, form, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
       }
       setModalOpen(false);
       setEditMarca(null);
@@ -169,7 +181,11 @@ export default function MarcaCrud() {
   const handleDelete = async (marca) => {
     if (window.confirm(`¿Eliminar marca "${marca.nomMarca}"?`)) {
       try {
-        await axios.delete(`${API}/marca/${marca.id}`);
+        await axios.delete(`${API}/marca/${marca.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+          },
+        });
         fetchMarcas(page);
       } catch (e) {
         alert("Error eliminando marca");

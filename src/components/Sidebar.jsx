@@ -29,6 +29,7 @@ import {
   AreaChart,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 const sections = [
   {
@@ -95,6 +96,40 @@ export default function Sidebar({ onSectionChange }) {
       [idx]: !prev[idx],
     }));
   };
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/token",
+        // "https://mixmatch.zapto.org/token",
+        new URLSearchParams({
+          username: "admin@example.com",
+          password: "123456",
+          grantType: "password",
+          withRefreshToken: true,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      const { accessToken, refreshToken } = response.data;
+
+      // Guardar los tokens en el localStorage
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      console.log("Inicio de sesión exitoso");
+      console.log("Access Token:", accessToken);
+      console.log("Refresh Token:", refreshToken);
+      // alert("Inicio de sesión exitoso");
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      alert("Error al iniciar sesión");
+    }
+  };
+
 
   return (
     <Card className="max-w-[280px] min-h-screen shadow-md flex flex-col ">
@@ -176,6 +211,17 @@ export default function Sidebar({ onSectionChange }) {
             Cerrar sesión
           </List.Item>
         </motion.div>
+
+        <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
+          <List.Item
+            className="text-blue-500 hover:bg-blue-50 cursor-pointer flex items-center"
+            onClick={handleLogin}
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Iniciar sesión
+          </List.Item>
+        </motion.div>
+
       </List>
     </Card>
   );

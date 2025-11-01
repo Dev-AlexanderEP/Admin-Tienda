@@ -3,10 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
+// const API = "https://mixmatch.zapto.org/api/v1";
 const IMG_BASE = "http://localhost:8080/"; // Cambia si es necesario
+// const IMG_BASE = "https://mixmatch.zapto.org/"; // Cambia si es necesario
 
 export default function ImagenesModal({ open, onClose, imagen }) {
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+
+    
   // State para inputs de archivo y previews
   const [files, setFiles] = useState({
     principal: null,
@@ -65,7 +70,10 @@ export default function ImagenesModal({ open, onClose, imagen }) {
       formData.append("nombreArchivo", nombreArchivo);
 
       await axios.post(`${API}/archivos/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+         },
       });
 
       // 2. Hacer PUT para actualizar el registro "imagen"
@@ -74,7 +82,11 @@ export default function ImagenesModal({ open, onClose, imagen }) {
       const imagenUpdated = { ...imagen };
       // Opcional: podrías actualizar la fecha/modificar otros campos si deseas.
 
-      await axios.put(`${API}/imagen/${imagen.id}`, imagenUpdated);
+      await axios.put(`${API}/imagen/${imagen.id}`, imagenUpdated, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
+      });
 
       alert("Archivo actualizado correctamente.");
       setFiles((prev) => ({ ...prev, [type]: null }));

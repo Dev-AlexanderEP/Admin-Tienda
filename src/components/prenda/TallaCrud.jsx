@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
 
 function TallaFormModal({ open, onClose, onSubmit, talla }) {
   const [form, setForm] = useState({
@@ -122,60 +122,78 @@ export default function TallaCrud() {
 
   // Fetch paginado
   const fetchTallas = async (page = 0) => {
-    setLoading(true);
-    try {
-      const { data } = await axios.get(`${API}/tallas/paginado`, {
-        params: { page, size: 10 },
-      });
-      if (data.object && Array.isArray(data.object.content)) {
-        setTallas(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
-      } else {
-        setTallas([]);
-        setTotalPages(1);
-        setPage(0);
-      }
-    } catch (e) {
+  setLoading(true);
+  try {
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+    const { data } = await axios.get(`${API}/tallas/paginado`, {
+      params: { page, size: 10 },
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+      },
+    });
+    if (data.object && Array.isArray(data.object.content)) {
+      setTallas(data.object.content);
+      setTotalPages(data.object.totalPages || 1);
+      setPage(data.object.page || 0);
+    } else {
       setTallas([]);
       setTotalPages(1);
       setPage(0);
     }
-    setLoading(false);
-  };
+  } catch (e) {
+    setTallas([]);
+    setTotalPages(1);
+    setPage(0);
+    alert("Error al obtener las tallas");
+  }
+  setLoading(false);
+};
 
-  useEffect(() => {
+useEffect(() => {
+  fetchTallas(page); // Llama a la función cada vez que cambie `page`
+}, [page]);
+
+const handleSave = async (form) => {
+  try {
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+    if (editTalla) {
+      // PUT para actualizar
+      await axios.put(`${API}/talla/${editTalla.id}`, form, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
+      });
+    } else {
+      // POST para crear
+      await axios.post(`${API}/talla`, form, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
+      });
+    }
+    setModalOpen(false);
+    setEditTalla(null);
     fetchTallas(page);
-    // eslint-disable-next-line
-  }, [page]);
+  } catch (e) {
+    alert("Error guardando talla");
+  }
+};
 
-  const handleSave = async (form) => {
+const handleDelete = async (talla) => {
+  if (window.confirm(`¿Eliminar talla "${talla.nomTalla}"?`)) {
     try {
-      if (editTalla) {
-        // PUT para actualizar
-        await axios.put(`${API}/talla/${editTalla.id}`, form);
-      } else {
-        // POST para crear
-        await axios.post(`${API}/talla`, form);
-      }
-      setModalOpen(false);
-      setEditTalla(null);
+      const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+      await axios.delete(`${API}/talla/${talla.id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
+        },
+      });
       fetchTallas(page);
     } catch (e) {
-      alert("Error guardando talla");
+      alert("Error eliminando talla");
     }
-  };
-
-  const handleDelete = async (talla) => {
-    if (window.confirm(`¿Eliminar talla "${talla.nomTalla}"?`)) {
-      try {
-        await axios.delete(`${API}/talla/${talla.id}`);
-        fetchTallas(page);
-      } catch (e) {
-        alert("Error eliminando talla");
-      }
-    }
-  };
+  }
+};
 
   // Sin inputs de filtro, solo muestra paginado real del backend
   const sortedTallas = [...tallas].sort((a, b) => a.id - b.id);

@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "/api/v1";
+const API = "http://localhost:8080/api/v1";
+// const API = "https://mixmatch.zapto.org/api/v1";
 
 function UsuarioFormModal({ open, onClose, onSubmit, usuario }) {
   const [form, setForm] = useState({
@@ -24,6 +25,7 @@ function UsuarioFormModal({ open, onClose, onSubmit, usuario }) {
     rol: "USER",
     activo: true,
   });
+  
 
   useEffect(() => {
     if (usuario) {
@@ -180,6 +182,7 @@ export default function UsuarioCrud() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editUsuario, setEditUsuario] = useState(null);
+    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Buscadores
   const [searchId, setSearchId] = useState("");
@@ -206,7 +209,7 @@ export default function UsuarioCrud() {
     if (searchNombre) params.nombreUsuario = searchNombre;
     if (searchEmail) params.email = searchEmail;
 
-    const { data } = await axios.get(`${API}/usuarios`, { params });
+    const { data } = await axios.get(`${API}/usuarios`, { params, headers: { Authorization: `Bearer ${accessToken}` } });
 
     // El array viene en data.object
     if (Array.isArray(data.object)) {
@@ -227,15 +230,21 @@ export default function UsuarioCrud() {
 };
 
   // Fetch paginado normal
-  const fetchUsuarios = async (page = 0) => {
+    const fetchUsuarios = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/usuarios`);
-      setUsuarios(data.content);
-      setTotalPages(data.totalPages);
-      setPage(data.number);
+      const { data } = await axios.get(`${API}/usuarios`, {
+        params: { pageNo: page + 1 }, // Ajustar a 1-indexed
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setUsuarios(data.object.data || []);
+      setTotalPages(data.object.totalPages || 1);
+      setPage(data.object.pageNumber - 1); // Ajustar a 0-indexed
     } catch (e) {
-      alert("Error cargando usuarios");
+      console.error("Error cargando usuarios:", e);
+      setUsuarios([]);
+      setTotalPages(1);
+      setPage(0);
     }
     setLoading(false);
   };
@@ -268,7 +277,9 @@ export default function UsuarioCrud() {
           rol: form.rol,
           activo: form.activo,
         };
-        await axios.put(`${API}/usuario/${editUsuario.id}`, payload);
+        await axios.put(`${API}/usuario/${editUsuario.id}`, payload, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
       } else {
         // POST para crear
         const payload = {
@@ -278,7 +289,9 @@ export default function UsuarioCrud() {
           rol: form.rol,
           activo: form.activo,
         };
-        await axios.post(`${API}/usuario`, payload);
+        await axios.post(`${API}/usuarios/create`, payload, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
       }
       setModalOpen(false);
       setEditUsuario(null);
@@ -295,7 +308,9 @@ export default function UsuarioCrud() {
   const handleDelete = async (usuario) => {
     if (window.confirm(`¿Eliminar usuario ${usuario.nombreUsuario}?`)) {
       try {
-        await axios.delete(`${API}/usuario/${usuario.id}`);
+        await axios.delete(`${API}/usuario/${usuario.id}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         if (isAnySearchActive) {
           buscarUsuarios();
         } else {
