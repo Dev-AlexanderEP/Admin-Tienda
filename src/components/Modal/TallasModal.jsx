@@ -3,8 +3,8 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers, Pencil, Plus, Check, Trash2 } from "lucide-react";
 
-const API = "http://localhost:8080/api/v1";
-// const API = "https://mixmatch.zapto.org/api/v1";
+// const API = "http://localhost:8080/api/v1";
+const API = "https://mixmatch.zapto.org/api/v1";
 
 
 // Modal para visualizar y CRUD de PrendaTalla

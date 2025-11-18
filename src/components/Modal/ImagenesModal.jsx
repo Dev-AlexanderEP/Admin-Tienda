@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
 import axios from "axios";
 
-const API = "http://localhost:8080/api/v1";
-// const API = "https://mixmatch.zapto.org/api/v1";
-const IMG_BASE = "http://localhost:8080/"; // Cambia si es necesario
-// const IMG_BASE = "https://mixmatch.zapto.org/"; // Cambia si es necesario
+// const API = "http://localhost:8080/api/v1";
+const API = "https://mixmatch.zapto.org/api/v1";
+// const IMG_BASE = "http://localhost:8080/"; // Cambia si es necesario
+const IMG_BASE = "https://mixmatch.zapto.org/"; // Cambia si es necesario
 
 export default function ImagenesModal({ open, onClose, imagen }) {
     const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage

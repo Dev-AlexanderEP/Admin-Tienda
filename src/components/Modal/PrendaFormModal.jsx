@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Shirt, Check, UploadCloud } from "lucide-react";
 import axios from "axios";
 
-const API = "http://localhost:8080/api/v1";
-// const API = "https://mixmatch.zapto.org/api/v1";
+// const API = "http://localhost:8080/api/v1";
+const API = "https://mixmatch.zapto.org/api/v1";
 
 
 export default function PrendaFormModal({

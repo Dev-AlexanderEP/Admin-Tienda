@@ -18,8 +18,8 @@ import PrendaFormModal from "../Modal/PrendaFormModal";
 import ImagenesModal from "../Modal/ImagenesModal";
 import PrendaUpdateFormModal from "../Modal/PrendaUpdateFormModal"; // Nuevo componente para editar
 
-const API = "http://localhost:8080/api/v1";
-// const API = "https://mixmatch.zapto.org/api/v1";
+// const API = "http://localhost:8080/api/v1";
+const API = "https://mixmatch.zapto.org/api/v1";
 
 const IMG_BASE = "/";
 
