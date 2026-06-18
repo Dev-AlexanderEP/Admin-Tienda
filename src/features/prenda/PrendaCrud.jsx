@@ -13,10 +13,10 @@ import {
   Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import TallasModal from "../Modal/TallasModal";
-import PrendaFormModal from "../Modal/PrendaFormModal";
-import ImagenesModal from "../Modal/ImagenesModal";
-import PrendaUpdateFormModal from "../Modal/PrendaUpdateFormModal"; // Nuevo componente para editar
+import TallasModal from "./TallasModal";
+import PrendaFormModal from "./PrendaFormModal";
+import ImagenesModal from "./ImagenesModal";
+import PrendaUpdateFormModal from "./PrendaUpdateFormModal";
 
 // const API = "http://localhost:8080/api/v1";
 const API = "https://mixmatch.zapto.org/api/v1";

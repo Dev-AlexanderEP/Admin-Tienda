@@ -1,34 +1,12 @@
 import * as React from "react";
+import { Card, List, Typography } from "@material-tailwind/react";
 import {
-  Card,
-  List,
-  Typography,
-} from "@material-tailwind/react";
-import {
-  User,
-  MapPin,
-  Shirt,
-  Ruler,
-  Tags,
-  Landmark,
-  ShoppingBag,
-  Truck,
-  Percent,
-  Code,
-  ShoppingCart,
-  CheckCircle,
-  CreditCard,
-  Banknote,
-  LogOut,
-  ChevronRight,
-  Users,
-  Store,
-  BarChart2,
-  LineChart,
-  PieChart,
-  AreaChart,
+  User, MapPin, Shirt, Ruler, Tags, Landmark, ShoppingBag, Truck,
+  Percent, Code, ShoppingCart, CheckCircle, CreditCard, Banknote,
+  LogOut, ChevronRight, Users, Store, BarChart2, LineChart, PieChart, AreaChart,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const sections = [
@@ -36,71 +14,77 @@ const sections = [
     title: "Usuario",
     icon: Users,
     subItems: [
-      { title: "Datos Personales", icon: User },
-      { title: "Dirección", icon: MapPin },
-      { title: "Usuario", icon: User },
+      { title: "Datos Personales", icon: User, path: "/usuario/datos-personales" },
+      { title: "Dirección", icon: MapPin, path: "/usuario/direccion" },
+      { title: "Usuario", icon: User, path: "/usuario/usuario" },
     ],
   },
   {
     title: "Prenda",
     icon: Shirt,
     subItems: [
-      { title: "Talla", icon: Ruler },
-      { title: "Categoría", icon: Tags },
-      { title: "Marca", icon: Landmark },
-      { title: "Prenda", icon: Shirt },
-      { title: "Proveedor", icon: Store },
+      { title: "Talla", icon: Ruler, path: "/prenda/talla" },
+      { title: "Categoría", icon: Tags, path: "/prenda/categoria" },
+      { title: "Marca", icon: Landmark, path: "/prenda/marca" },
+      { title: "Prenda", icon: Shirt, path: "/prenda/prenda" },
+      { title: "Proveedor", icon: Store, path: "/prenda/proveedor" },
     ],
   },
   {
     title: "Descuento",
     icon: Percent,
     subItems: [
-      { title: "Por Categoría", icon: Tags },
-      { title: "Por Código", icon: Code },
-      { title: "Por Prenda", icon: Shirt },
-      { title: "Por Usuario", icon: Users },
+      { title: "Por Categoría", icon: Tags, path: "/descuento/por-categoria" },
+      { title: "Por Código", icon: Code, path: "/descuento/por-codigo" },
+      { title: "Por Prenda", icon: Shirt, path: "/descuento/por-prenda" },
+      { title: "Por Usuario", icon: Users, path: "/descuento/por-usuario" },
     ],
   },
   {
     title: "Venta",
     icon: ShoppingBag,
     subItems: [
-      { title: "Carrito", icon: ShoppingCart },
-      { title: "Venta Realizada", icon: CheckCircle },
-      { title: "Envío", icon: Truck },
-      { title: "Reporte Ventas (Barra)", icon: BarChart2 },
-      { title: "Reporte Ventas (Línea)", icon: LineChart },
-      { title: "Reporte Ventas (Pie)", icon: PieChart },
-      { title: "Reporte Ventas (Área)", icon: AreaChart },
+      { title: "Carrito", icon: ShoppingCart, path: "/venta/carrito" },
+      { title: "Venta Realizada", icon: CheckCircle, path: "/venta/venta-realizada" },
+      { title: "Envío", icon: Truck, path: "/venta/envio" },
+      { title: "Reporte Ventas (Barra)", icon: BarChart2, path: "/venta/reporte-barra" },
+      { title: "Reporte Ventas (Línea)", icon: LineChart, path: "/venta/reporte-linea" },
+      { title: "Reporte Ventas (Pie)", icon: PieChart, path: "/venta/reporte-pie" },
+      { title: "Reporte Ventas (Área)", icon: AreaChart, path: "/venta/reporte-area" },
     ],
   },
   {
     title: "Pago",
     icon: CreditCard,
     subItems: [
-      { title: "Método de Pago", icon: Banknote },
-      { title: "Pagos Realizados", icon: CheckCircle },
+      { title: "Método de Pago", icon: Banknote, path: "/pago/metodo-de-pago" },
+      { title: "Pagos Realizados", icon: CheckCircle, path: "/pago/pagos-realizados" },
     ],
   },
 ];
 
-// ...tus imports...
-
-export default function Sidebar({ onSectionChange }) {
+export default function Sidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [openSections, setOpenSections] = React.useState({});
 
+  // Auto-expand the section that contains the current route
+  React.useEffect(() => {
+    const idx = sections.findIndex((section) =>
+      section.subItems.some((item) => item.path === location.pathname)
+    );
+    if (idx !== -1) {
+      setOpenSections((prev) => ({ ...prev, [idx]: true }));
+    }
+  }, [location.pathname]);
+
   const handleToggle = (idx) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [idx]: !prev[idx],
-    }));
+    setOpenSections((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        // "http://localhost:8080/token",
         "https://mixmatch.zapto.org/token",
         new URLSearchParams({
           username: "admin@example.com",
@@ -108,35 +92,21 @@ export default function Sidebar({ onSectionChange }) {
           grantType: "password",
           withRefreshToken: true,
         }),
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
-
       const { accessToken, refreshToken } = response.data;
-
-      // Guardar los tokens en el localStorage
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-      console.log("Inicio de sesión exitoso");
-      console.log("Access Token:", accessToken);
-      console.log("Refresh Token:", refreshToken);
-      // alert("Inicio de sesión exitoso");
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       alert("Error al iniciar sesión");
     }
   };
 
-
   return (
-    <Card className="max-w-[280px] min-h-screen shadow-md flex flex-col ">
+    <Card className="max-w-[280px] min-h-screen shadow-md flex flex-col">
       <div className="px-4 py-5 border-b sticky top-0 bg-white z-10">
-        <Typography className="font-semibold text-lg">
-          Panel Admin
-        </Typography>
+        <Typography className="font-semibold text-lg">Panel Admin</Typography>
       </div>
       <List className="p-2 flex-1 overflow-y-auto">
         {sections.map((section, idx) => (
@@ -176,28 +146,28 @@ export default function Sidebar({ onSectionChange }) {
                   style={{ overflow: "hidden" }}
                 >
                   <List className="ml-6">
-                    {section.subItems.map((item) => (
-                      <motion.div
-                        key={item.title}
-                        initial={{ opacity: 0, x: -16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -16 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <List.Item
-                          className="text-sm flex items-center cursor-pointer"
-                          onClick={() => {
-                            // Aquí llamas el cambio de sección
-                            if (onSectionChange) {
-                              onSectionChange(`${section.title.toLowerCase()}-${item.title.toLowerCase().replace(/\s/g, "")}`);
-                            }
-                          }}
+                    {section.subItems.map((item) => {
+                      const isActive = location.pathname === item.path;
+                      return (
+                        <motion.div
+                          key={item.title}
+                          initial={{ opacity: 0, x: -16 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -16 }}
+                          transition={{ duration: 0.2 }}
                         >
-                          {item.icon && <item.icon className="h-4 w-4 mr-2" />}
-                          {item.title}
-                        </List.Item>
-                      </motion.div>
-                    ))}
+                          <List.Item
+                            className={`text-sm flex items-center cursor-pointer ${
+                              isActive ? "bg-blue-50 text-blue-600 font-medium" : ""
+                            }`}
+                            onClick={() => navigate(item.path)}
+                          >
+                            {item.icon && <item.icon className="h-4 w-4 mr-2" />}
+                            {item.title}
+                          </List.Item>
+                        </motion.div>
+                      );
+                    })}
                   </List>
                 </motion.div>
               )}
@@ -211,7 +181,6 @@ export default function Sidebar({ onSectionChange }) {
             Cerrar sesión
           </List.Item>
         </motion.div>
-
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
           <List.Item
             className="text-blue-500 hover:bg-blue-50 cursor-pointer flex items-center"
@@ -221,7 +190,6 @@ export default function Sidebar({ onSectionChange }) {
             Iniciar sesión
           </List.Item>
         </motion.div>
-
       </List>
     </Card>
   );
