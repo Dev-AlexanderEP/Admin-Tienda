@@ -1,4 +1,4 @@
-import ReporteVentasPieFeature from "../features/reporteVentasPie";
+import ReporteVentasPieFeature from "../features/reportes/reporteVentasPie";
 
 export default function ReporteVentasPiePage() {
   return <ReporteVentasPieFeature />;

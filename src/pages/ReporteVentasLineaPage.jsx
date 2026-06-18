@@ -1,4 +1,4 @@
-import ReporteVentasLineaFeature from "../features/reporteVentasLinea";
+import ReporteVentasLineaFeature from "../features/reportes/reporteVentasLinea";
 
 export default function ReporteVentasLineaPage() {
   return <ReporteVentasLineaFeature />;
