@@ -1,4 +1,4 @@
-import DescuentoUsuarioFeature from "../features/descuentoUsuario";
+import DescuentoUsuarioFeature from "../features/descuentos/descuentoUsuario";
 
 export default function DescuentoUsuarioPage() {
   return <DescuentoUsuarioFeature />;

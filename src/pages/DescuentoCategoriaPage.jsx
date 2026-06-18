@@ -1,4 +1,4 @@
-import DescuentoCategoriaFeature from "../features/descuentoCategoria";
+import DescuentoCategoriaFeature from "../features/descuentos/descuentoCategoria";
 
 export default function DescuentoCategoriaPage() {
   return <DescuentoCategoriaFeature />;
