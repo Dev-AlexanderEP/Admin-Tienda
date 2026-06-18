@@ -1,4 +1,4 @@
-import api, { authHeader } from "./axiosConfig";
+import api, { authHeader } from "../../../lib/axiosConfig";
 
 export const createPrendaTalla = (body) =>
   api.post("/prenda-talla", body, { headers: authHeader() });

@@ -1,4 +1,4 @@
-import api, { authHeader } from "./axiosConfig";
+import api, { authHeader } from "../../../lib/axiosConfig";
 
 export const getMarcasPaginado = (page, size = 10) =>
   api.get("/marcas/paginado", { params: { page, size }, headers: authHeader() });

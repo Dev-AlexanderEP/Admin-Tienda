@@ -1,4 +1,4 @@
-import api from "./axiosConfig";
+import api from "../../../lib/axiosConfig";
 
 export const getDireccionesPaginado = (page, size = 10) =>
   api.get("/direcciones/paginado", { params: { page, size } });

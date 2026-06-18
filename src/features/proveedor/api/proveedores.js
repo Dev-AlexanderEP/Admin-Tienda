@@ -1,4 +1,4 @@
-import api, { authHeader } from "./axiosConfig";
+import api, { authHeader } from "../../../lib/axiosConfig";
 
 export const getProveedoresPaginado = (page, size = 10) =>
   api.get("/proveedores/paginado", { params: { page, size }, headers: authHeader() });

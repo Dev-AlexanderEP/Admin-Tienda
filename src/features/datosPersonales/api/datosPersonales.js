@@ -1,4 +1,4 @@
-import api from "./axiosConfig";
+import api from "../../../lib/axiosConfig";
 
 export const getDatosPaginado = (page, size = 10) =>
   api.get("/datos-personales/paginado", { params: { page, size } });
