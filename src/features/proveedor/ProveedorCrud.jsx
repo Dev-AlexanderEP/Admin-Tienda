@@ -13,7 +13,7 @@ import {
   createProveedor,
   updateProveedor,
   deleteProveedor,
-} from "../../Api/proveedores";
+} from "./api/proveedores";
 
 function ProveedorFormModal({ open, onClose, onSubmit, proveedor }) {
   const [form, setForm] = useState({

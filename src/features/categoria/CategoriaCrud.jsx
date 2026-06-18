@@ -13,7 +13,7 @@ import {
   createCategoria,
   updateCategoria,
   deleteCategoria,
-} from "../../Api/categorias";
+} from "./api/categorias";
 
 function CategoriaFormModal({ open, onClose, onSubmit, categoria }) {
   const [form, setForm] = useState({

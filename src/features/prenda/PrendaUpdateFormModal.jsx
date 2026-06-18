@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
-import { updatePrenda, updateImagen, renombrarCarpeta } from "../../Api/prendas";
+import { updatePrenda, updateImagen, renombrarCarpeta } from "./api/prendas";
 
 
 export default function PrendaUpdateFormModal({

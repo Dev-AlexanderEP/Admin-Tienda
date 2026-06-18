@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Shirt, Check, UploadCloud } from "lucide-react";
-import { uploadArchivo as uploadArchivoApi, createImagen } from "../../Api/prendas";
+import { uploadArchivo as uploadArchivoApi, createImagen } from "./api/prendas";
 
 
 export default function PrendaFormModal({

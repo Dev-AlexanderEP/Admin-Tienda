@@ -23,10 +23,10 @@ import {
   deletePrenda,
   eliminarCarpeta,
   getGeneros,
-} from "../../Api/prendas";
-import { getMarcas } from "../../Api/marcas";
-import { getCategorias } from "../../Api/categorias";
-import { getProveedores } from "../../Api/proveedores";
+} from "./api/prendas";
+import { getMarcas } from "../marca/api/marcas";
+import { getCategorias } from "../categoria/api/categorias";
+import { getProveedores } from "../proveedor/api/proveedores";
 
 export default function PrendaCrud() {
   const [prendas, setPrendas] = useState([]);

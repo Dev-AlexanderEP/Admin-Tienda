@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers, Pencil, Plus, Check, Trash2 } from "lucide-react";
-import { getTallas } from "../../Api/tallas";
+import { getTallas } from "../talla/api/tallas";
 import {
   createPrendaTalla,
   updatePrendaTalla,
   deletePrendaTalla,
-} from "../../Api/prendaTallas";
+} from "./api/prendaTallas";
 
 
 // Modal para visualizar y CRUD de PrendaTalla

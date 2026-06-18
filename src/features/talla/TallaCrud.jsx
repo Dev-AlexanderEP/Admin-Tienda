@@ -13,7 +13,7 @@ import {
   createTalla,
   updateTalla,
   deleteTalla,
-} from "../../Api/tallas";
+} from "./api/tallas";
 
 function TallaFormModal({ open, onClose, onSubmit, talla }) {
   const [form, setForm] = useState({

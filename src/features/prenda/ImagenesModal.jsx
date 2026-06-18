@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
-import { uploadArchivo as uploadArchivoApi, updateImagen } from "../../Api/prendas";
+import { uploadArchivo as uploadArchivoApi, updateImagen } from "./api/prendas";
 
 const IMG_BASE = "https://mixmatch.zapto.org/";
 

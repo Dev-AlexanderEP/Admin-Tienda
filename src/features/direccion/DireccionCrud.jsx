@@ -7,7 +7,7 @@ import {
   createDireccion,
   updateDireccion,
   deleteDireccion,
-} from "../../Api/direcciones";
+} from "./api/direcciones";
 
 function DireccionFormModal({ open, onClose, onSubmit, direccion }) {
   const [form, setForm] = useState({

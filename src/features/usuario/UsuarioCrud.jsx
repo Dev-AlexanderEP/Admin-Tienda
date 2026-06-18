@@ -19,7 +19,7 @@ import {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-} from "../../Api/usuarios";
+} from "./api/usuarios";
 
 function UsuarioFormModal({ open, onClose, onSubmit, usuario }) {
   const [form, setForm] = useState({

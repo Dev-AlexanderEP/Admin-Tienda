@@ -18,7 +18,7 @@ import {
   createDato,
   updateDato,
   deleteDato,
-} from "../../Api/datosPersonales";
+} from "./api/datosPersonales";
 
 function DatosPersonalesFormModal({ open, onClose, onSubmit, datos }) {
   const [form, setForm] = useState({

@@ -13,7 +13,7 @@ import {
   createMarca,
   updateMarca,
   deleteMarca,
-} from "../../Api/marcas";
+} from "./api/marcas";
 
 function MarcaFormModal({ open, onClose, onSubmit, marca }) {
   const [form, setForm] = useState({
