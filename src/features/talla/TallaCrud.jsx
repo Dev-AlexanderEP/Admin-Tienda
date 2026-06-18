@@ -8,6 +8,7 @@ import {
   Ruler,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Table from "../../components/Table";
 
 const API = "http://localhost:8080/api/v1";
 
@@ -113,13 +114,6 @@ export default function TallaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTalla, setEditTalla] = useState(null);
 
-  // Animaciones para tabla
-  const tableVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-
   // Fetch paginado
   const fetchTallas = async (page = 0) => {
   setLoading(true);
@@ -216,103 +210,53 @@ const handleDelete = async (talla) => {
           <Ruler className="h-5 w-5" /> Nueva talla
         </motion.button>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page + "-" + sortedTallas.length}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={tableVariants}
-          transition={{ duration: 0.25 }}
-          className="overflow-x-auto rounded shadow bg-white"
-        >
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-2 px-4 text-left">ID</th>
-                <th className="py-2 px-4 text-left">Nombre de Talla</th>
-                <th className="py-2 px-4 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={3} className="py-6 text-center">
-                    Cargando...
-                  </td>
-                </tr>
-              ) : sortedTallas.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="py-6 text-center">
-                    Sin tallas
-                  </td>
-                </tr>
-              ) : (
-                sortedTallas.map((t) => (
-                  <motion.tr
-                    key={t.id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="border-b hover:bg-blue-50 transition"
-                  >
-                    <td className="py-2 px-4">{t.id}</td>
-                    <td className="py-2 px-4">{t.nomTalla}</td>
-                    <td className="py-2 px-4 flex gap-2 justify-center">
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Editar"
-                        className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                        onClick={() => {
-                          setEditTalla(t);
-                          setModalOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Eliminar"
-                        className="p-2 rounded hover:bg-red-100 text-red-700"
-                        onClick={() => handleDelete(t)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          {/* Paginación real */}
-          <div className="flex justify-between items-center py-3 px-4 bg-gray-50">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              disabled={page === 0}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+      <Table animKey={page + "-" + sortedTallas.length}>
+        <Table.Header columns={["ID", "Nombre de Talla", "Acciones"]} />
+        <Table.Body loading={loading} colSpan={3} empty={sortedTallas.length === 0} emptyText="Sin tallas">
+          {sortedTallas.map((t) => (
+            <motion.tr
+              key={t.id}
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="border-b hover:bg-blue-50 transition"
             >
-              Anterior
-            </motion.button>
-            <span>
-              Página <b>{page + 1}</b> de <b>{totalPages}</b>
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              disabled={page >= totalPages - 1}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-            >
-              Siguiente
-            </motion.button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              <td className="py-2 px-4">{t.id}</td>
+              <td className="py-2 px-4">{t.nomTalla}</td>
+              <td className="py-2 px-4 flex gap-2 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Editar"
+                  className="p-2 rounded hover:bg-blue-100 text-blue-700"
+                  onClick={() => {
+                    setEditTalla(t);
+                    setModalOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Eliminar"
+                  className="p-2 rounded hover:bg-red-100 text-red-700"
+                  onClick={() => handleDelete(t)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </motion.button>
+              </td>
+            </motion.tr>
+          ))}
+        </Table.Body>
+        <Table.Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrev={() => setPage(Math.max(page - 1, 0))}
+          onNext={() => setPage(Math.min(page + 1, totalPages - 1))}
+        />
+      </Table>
       <TallaFormModal
         open={modalOpen}
         onClose={() => {

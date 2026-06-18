@@ -13,6 +13,7 @@ import {
   Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Table from "../../components/Table";
 import TallasModal from "./TallasModal";
 import PrendaFormModal from "./PrendaFormModal";
 import ImagenesModal from "./ImagenesModal";
@@ -45,13 +46,7 @@ export default function PrendaCrud() {
   const [proveedores, setProveedores] = useState([]);
   const [generos, setGeneros] = useState([]);
 
-  // Animaciones para tabla
-  const tableVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-  const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+  const accessToken = localStorage.getItem("accessToken");
 
   // Cargar selects
   const fetchSelects = async () => {
@@ -207,147 +202,88 @@ export default function PrendaCrud() {
           <Plus className="h-5 w-5" /> Nueva prenda
         </motion.button>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page + "-" + sortedPrendas.length}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={tableVariants}
-          transition={{ duration: 0.25 }}
-          className="overflow-x-auto rounded shadow bg-white"
-        >
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-2 px-4 text-left">ID</th>
-                <th className="py-2 px-4 text-left">Nombre</th>
-                <th className="py-2 px-4 text-left">Descripción</th>
-                <th className="py-2 px-4 text-left">Marca</th>
-                <th className="py-2 px-4 text-left">Categoría</th>
-                <th className="py-2 px-4 text-left">Proveedor</th>
-                <th className="py-2 px-4 text-left">Género</th>
-                <th className="py-2 px-4 text-left">Precio</th>
-                <th className="py-2 px-4 text-left">Activo</th>
-                <th className="py-2 px-4 text-left">Imágenes</th>
-                <th className="py-2 px-4 text-left">Tallas</th>
-                <th className="py-2 px-4 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={12} className="py-6 text-center">
-                    Cargando...
-                  </td>
-                </tr>
-              ) : sortedPrendas.length === 0 ? (
-                <tr>
-                  <td colSpan={12} className="py-6 text-center">
-                    Sin prendas
-                  </td>
-                </tr>
-              ) : (
-                sortedPrendas.map((p) => (
-                  <motion.tr
-                    key={p.id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="border-b hover:bg-blue-50 transition"
-                  >
-                    <td className="py-2 px-4">{p.id}</td>
-                    <td className="py-2 px-4">{p.nombre}</td>
-                    <td className="py-2 px-4 truncate max-w-[240px]">{p.descripcion}</td>
-                    <td className="py-2 px-4">{p.marca?.nomMarca}</td>
-                    <td className="py-2 px-4">{p.categoria?.nomCategoria}</td>
-                    <td className="py-2 px-4">{p.proveedor?.nomProveedor}</td>
-                    <td className="py-2 px-4">{p.genero?.nomGenero}</td>
-                    <td className="py-2 px-4">
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" /> {p.precio}
-                      </span>
-                    </td>
-                    <td className="py-2 px-4">
-                      <span className="flex items-center gap-1">
-                        <ToggleRight className={`h-4 w-4 ${p.activo ? "text-green-500" : "text-gray-400"}`} />
-                        {p.activo ? "Sí" : "No"}
-                      </span>
-                    </td>
-                    <td className="py-2 px-4">
-                      <motion.button
-                        whileHover={{ scale: 1.07 }}
-                        whileTap={{ scale: 0.96 }}
-                        title="Ver imágenes"
-                        className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                        onClick={() => setImagenesModal({ open: true, imagen: p.imagen })}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                    <td className="py-2 px-4">
-                      <motion.button
-                        whileHover={{ scale: 1.07 }}
-                        whileTap={{ scale: 0.96 }}
-                        title="Ver tallas"
-                        className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                        onClick={() => setTallasModal({ open: true, tallas: p.tallas, prendaId: p.id })}
-                      >
-                        <Layers className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                    <td className="py-2 px-4 flex gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.07 }}
-                        whileTap={{ scale: 0.96 }}
-                        title="Editar"
-                        className="p-2 rounded hover:bg-yellow-100 text-yellow-700"
-                        onClick={() => setEditModal({ open: true, prenda: p })}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.07 }}
-                        whileTap={{ scale: 0.96 }}
-                        title="Eliminar"
-                        className="p-2 rounded hover:bg-red-100 text-red-700"
-                        onClick={() => handleDelete(p)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          {/* Paginación real */}
-          <div className="flex justify-between items-center py-3 px-4 bg-gray-50">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              disabled={page === 0}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+      <Table animKey={page + "-" + sortedPrendas.length}>
+        <Table.Header columns={["ID", "Nombre", "Descripción", "Marca", "Categoría", "Proveedor", "Género", "Precio", "Activo", "Imágenes", "Tallas", "Acciones"]} />
+        <Table.Body loading={loading} colSpan={12} empty={sortedPrendas.length === 0} emptyText="Sin prendas">
+          {sortedPrendas.map((p) => (
+            <motion.tr
+              key={p.id}
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="border-b hover:bg-blue-50 transition"
             >
-              Anterior
-            </motion.button>
-            <span>
-              Página <b>{page + 1}</b> de <b>{totalPages}</b>
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              disabled={page >= totalPages - 1}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-            >
-              Siguiente
-            </motion.button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              <td className="py-2 px-4">{p.id}</td>
+              <td className="py-2 px-4">{p.nombre}</td>
+              <td className="py-2 px-4 truncate max-w-[240px]">{p.descripcion}</td>
+              <td className="py-2 px-4">{p.marca?.nomMarca}</td>
+              <td className="py-2 px-4">{p.categoria?.nomCategoria}</td>
+              <td className="py-2 px-4">{p.proveedor?.nomProveedor}</td>
+              <td className="py-2 px-4">{p.genero?.nomGenero}</td>
+              <td className="py-2 px-4">
+                <span className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4" /> {p.precio}
+                </span>
+              </td>
+              <td className="py-2 px-4">
+                <span className="flex items-center gap-1">
+                  <ToggleRight className={`h-4 w-4 ${p.activo ? "text-green-500" : "text-gray-400"}`} />
+                  {p.activo ? "Sí" : "No"}
+                </span>
+              </td>
+              <td className="py-2 px-4">
+                <motion.button
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                  title="Ver imágenes"
+                  className="p-2 rounded hover:bg-blue-100 text-blue-700"
+                  onClick={() => setImagenesModal({ open: true, imagen: p.imagen })}
+                >
+                  <Eye className="h-4 w-4" />
+                </motion.button>
+              </td>
+              <td className="py-2 px-4">
+                <motion.button
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                  title="Ver tallas"
+                  className="p-2 rounded hover:bg-blue-100 text-blue-700"
+                  onClick={() => setTallasModal({ open: true, tallas: p.tallas, prendaId: p.id })}
+                >
+                  <Layers className="h-4 w-4" />
+                </motion.button>
+              </td>
+              <td className="py-2 px-4 flex gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                  title="Editar"
+                  className="p-2 rounded hover:bg-yellow-100 text-yellow-700"
+                  onClick={() => setEditModal({ open: true, prenda: p })}
+                >
+                  <Pencil className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                  title="Eliminar"
+                  className="p-2 rounded hover:bg-red-100 text-red-700"
+                  onClick={() => handleDelete(p)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </motion.button>
+              </td>
+            </motion.tr>
+          ))}
+        </Table.Body>
+        <Table.Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrev={() => setPage(Math.max(page - 1, 0))}
+          onNext={() => setPage(Math.min(page + 1, totalPages - 1))}
+        />
+      </Table>
       {/* Modal para crear prenda */}
       <PrendaFormModal
         open={modalOpen}

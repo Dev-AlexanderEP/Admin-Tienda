@@ -8,6 +8,7 @@ import {
   Tags,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Table from "../../components/Table";
 
 // const API = "/api/v1";
 const API = "http://localhost:8080/api/v1";
@@ -114,13 +115,7 @@ export default function CategoriaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editCategoria, setEditCategoria] = useState(null);
 
-  // Animaciones para tabla
-  const tableVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-  const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
+  const accessToken = localStorage.getItem("accessToken");
 
   // Fetch paginado
   const fetchCategorias = async (page = 0) => {
@@ -215,103 +210,53 @@ export default function CategoriaCrud() {
           <Tags className="h-5 w-5" /> Nueva categoría
         </motion.button>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page + "-" + sortedCategorias.length}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={tableVariants}
-          transition={{ duration: 0.25 }}
-          className="overflow-x-auto rounded shadow bg-white"
-        >
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-2 px-4 text-left">ID</th>
-                <th className="py-2 px-4 text-left">Nombre de Categoría</th>
-                <th className="py-2 px-4 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={3} className="py-6 text-center">
-                    Cargando...
-                  </td>
-                </tr>
-              ) : sortedCategorias.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="py-6 text-center">
-                    Sin categorías
-                  </td>
-                </tr>
-              ) : (
-                sortedCategorias.map((c) => (
-                  <motion.tr
-                    key={c.id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="border-b hover:bg-blue-50 transition"
-                  >
-                    <td className="py-2 px-4">{c.id}</td>
-                    <td className="py-2 px-4">{c.nomCategoria}</td>
-                    <td className="py-2 px-4 flex gap-2 justify-center">
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Editar"
-                        className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                        onClick={() => {
-                          setEditCategoria(c);
-                          setModalOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Eliminar"
-                        className="p-2 rounded hover:bg-red-100 text-red-700"
-                        onClick={() => handleDelete(c)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          {/* Paginación real */}
-          <div className="flex justify-between items-center py-3 px-4 bg-gray-50">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              disabled={page === 0}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+      <Table animKey={page + "-" + sortedCategorias.length}>
+        <Table.Header columns={["ID", "Nombre de Categoría", "Acciones"]} />
+        <Table.Body loading={loading} colSpan={3} empty={sortedCategorias.length === 0} emptyText="Sin categorías">
+          {sortedCategorias.map((c) => (
+            <motion.tr
+              key={c.id}
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="border-b hover:bg-blue-50 transition"
             >
-              Anterior
-            </motion.button>
-            <span>
-              Página <b>{page + 1}</b> de <b>{totalPages}</b>
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              disabled={page >= totalPages - 1}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-            >
-              Siguiente
-            </motion.button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              <td className="py-2 px-4">{c.id}</td>
+              <td className="py-2 px-4">{c.nomCategoria}</td>
+              <td className="py-2 px-4 flex gap-2 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Editar"
+                  className="p-2 rounded hover:bg-blue-100 text-blue-700"
+                  onClick={() => {
+                    setEditCategoria(c);
+                    setModalOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Eliminar"
+                  className="p-2 rounded hover:bg-red-100 text-red-700"
+                  onClick={() => handleDelete(c)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </motion.button>
+              </td>
+            </motion.tr>
+          ))}
+        </Table.Body>
+        <Table.Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrev={() => setPage(Math.max(page - 1, 0))}
+          onNext={() => setPage(Math.min(page + 1, totalPages - 1))}
+        />
+      </Table>
       <CategoriaFormModal
         open={modalOpen}
         onClose={() => {

@@ -13,6 +13,7 @@ import {
   FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Table from "../../components/Table";
 
 const API = "/api/v1";
 
@@ -269,13 +270,6 @@ export default function DatosPersonalesCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editDatos, setEditDatos] = useState(null);
 
-  // Animaciones para tabla
-  const tableVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-
   // Fetch paginado
   const fetchDatos = async (page = 0) => {
     setLoading(true);
@@ -354,121 +348,62 @@ export default function DatosPersonalesCrud() {
           <User className="h-5 w-5" /> Nuevo dato personal
         </motion.button>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page + "-" + sortedDatos.length}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={tableVariants}
-          transition={{ duration: 0.25 }}
-          className="overflow-x-auto rounded shadow bg-white"
-        >
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-2 px-4 text-left">ID</th>
-                <th className="py-2 px-4 text-left">Nombres</th>
-                <th className="py-2 px-4 text-left">Apellidos</th>
-                <th className="py-2 px-4 text-left">Usuario ID</th>
-                <th className="py-2 px-4 text-left">DNI</th>
-                <th className="py-2 px-4 text-left">Departamento</th>
-                <th className="py-2 px-4 text-left">Provincia</th>
-                <th className="py-2 px-4 text-left">Distrito</th>
-                <th className="py-2 px-4 text-left">Calle</th>
-                <th className="py-2 px-4 text-left">Detalle</th>
-                <th className="py-2 px-4 text-left">Teléfono</th>
-                <th className="py-2 px-4 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={12} className="py-6 text-center">
-                    Cargando...
-                  </td>
-                </tr>
-              ) : sortedDatos.length === 0 ? (
-                <tr>
-                  <td colSpan={12} className="py-6 text-center">
-                    Sin datos personales
-                  </td>
-                </tr>
-              ) : (
-                sortedDatos.map((d) => (
-                  <motion.tr
-                    key={d.id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="border-b hover:bg-blue-50 transition"
-                  >
-                    <td className="py-2 px-4">{d.id}</td>
-                    <td className="py-2 px-4">{d.nombres}</td>
-                    <td className="py-2 px-4">{d.apellidos}</td>
-                    <td className="py-2 px-4">{d.usuarioId}</td>
-                    <td className="py-2 px-4">{d.dni}</td>
-                    <td className="py-2 px-4">{d.departamento}</td>
-                    <td className="py-2 px-4">{d.provincia}</td>
-                    <td className="py-2 px-4">{d.distrito}</td>
-                    <td className="py-2 px-4">{d.calle}</td>
-                    <td className="py-2 px-4">{d.detalle}</td>
-                    <td className="py-2 px-4">{d.telefono}</td>
-                    <td className="py-2 px-4 flex gap-2 justify-center">
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Editar"
-                        className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                        onClick={() => {
-                          setEditDatos(d);
-                          setModalOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.10 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Eliminar"
-                        className="p-2 rounded hover:bg-red-100 text-red-700"
-                        onClick={() => handleDelete(d)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </motion.button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          {/* Paginación real */}
-          <div className="flex justify-between items-center py-3 px-4 bg-gray-50">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              disabled={page === 0}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+      <Table animKey={page + "-" + sortedDatos.length}>
+        <Table.Header columns={["ID", "Nombres", "Apellidos", "Usuario ID", "DNI", "Departamento", "Provincia", "Distrito", "Calle", "Detalle", "Teléfono", "Acciones"]} />
+        <Table.Body loading={loading} colSpan={12} empty={sortedDatos.length === 0} emptyText="Sin datos personales">
+          {sortedDatos.map((d) => (
+            <motion.tr
+              key={d.id}
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="border-b hover:bg-blue-50 transition"
             >
-              Anterior
-            </motion.button>
-            <span>
-              Página <b>{page + 1}</b> de <b>{totalPages}</b>
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              disabled={page >= totalPages - 1}
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-            >
-              Siguiente
-            </motion.button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              <td className="py-2 px-4">{d.id}</td>
+              <td className="py-2 px-4">{d.nombres}</td>
+              <td className="py-2 px-4">{d.apellidos}</td>
+              <td className="py-2 px-4">{d.usuarioId}</td>
+              <td className="py-2 px-4">{d.dni}</td>
+              <td className="py-2 px-4">{d.departamento}</td>
+              <td className="py-2 px-4">{d.provincia}</td>
+              <td className="py-2 px-4">{d.distrito}</td>
+              <td className="py-2 px-4">{d.calle}</td>
+              <td className="py-2 px-4">{d.detalle}</td>
+              <td className="py-2 px-4">{d.telefono}</td>
+              <td className="py-2 px-4 flex gap-2 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Editar"
+                  className="p-2 rounded hover:bg-blue-100 text-blue-700"
+                  onClick={() => {
+                    setEditDatos(d);
+                    setModalOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.10 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Eliminar"
+                  className="p-2 rounded hover:bg-red-100 text-red-700"
+                  onClick={() => handleDelete(d)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </motion.button>
+              </td>
+            </motion.tr>
+          ))}
+        </Table.Body>
+        <Table.Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrev={() => setPage(Math.max(page - 1, 0))}
+          onNext={() => setPage(Math.min(page + 1, totalPages - 1))}
+        />
+      </Table>
       <DatosPersonalesFormModal
         open={modalOpen}
         onClose={() => {
