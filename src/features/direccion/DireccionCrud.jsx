@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Pencil, Trash2, User, Check, X, Search, MapPin, Phone, UserCircle2, AlignJustify, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-const API = "/api/v1";
+import {
+  getDireccionesPaginado,
+  createDireccion,
+  updateDireccion,
+  deleteDireccion,
+} from "../../Api/direcciones";
 
 function DireccionFormModal({ open, onClose, onSubmit, direccion }) {
   const [form, setForm] = useState({
@@ -266,11 +269,8 @@ export default function DireccionCrud() {
   const fetchDirecciones = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/direcciones/paginado`, {
-        params: { page, size: 10 },
-        });
+      const { data } = await getDireccionesPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
-        console.log("Respuesta API:", data);
         setDirecciones(data.object.content);
         setTotalPages(data.object.totalPages || 1);
         setPage(data.object.page || 0);
@@ -295,11 +295,9 @@ export default function DireccionCrud() {
   const handleSave = async (form) => {
     try {
       if (editDireccion) {
-        // PUT para actualizar
-        await axios.put(`${API}/direccion/${editDireccion.id}`, form);
+        await updateDireccion(editDireccion.id, form);
       } else {
-        // POST para crear
-        await axios.post(`${API}/direccion`, form);
+        await createDireccion(form);
       }
       setModalOpen(false);
       setEditDireccion(null);
@@ -312,7 +310,7 @@ export default function DireccionCrud() {
   const handleDelete = async (direccion) => {
     if (window.confirm(`¿Eliminar dirección de ${direccion.nombres} ${direccion.apellidos}?`)) {
       try {
-        await axios.delete(`${API}/direccion/${direccion.id}`);
+        await deleteDireccion(direccion.id);
         fetchDirecciones(page);
       } catch (e) {
         alert("Error eliminando dirección");

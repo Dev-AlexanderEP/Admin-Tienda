@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -9,8 +8,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-const API = "http://localhost:8080/api/v1";
+import {
+  getProveedoresPaginado,
+  createProveedor,
+  updateProveedor,
+  deleteProveedor,
+} from "../../Api/proveedores";
 
 function ProveedorFormModal({ open, onClose, onSubmit, proveedor }) {
   const [form, setForm] = useState({
@@ -114,18 +117,11 @@ export default function ProveedorCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProveedor, setEditProveedor] = useState(null);
 
-  const accessToken = localStorage.getItem("accessToken");
-
   // Fetch paginado
   const fetchProveedores = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/proveedores/paginado`, {
-        params: { page, size: 10 },
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      const { data } = await getProveedoresPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
         setProveedores(data.object.content);
         setTotalPages(data.object.totalPages || 1);
@@ -151,20 +147,9 @@ export default function ProveedorCrud() {
   const handleSave = async (form) => {
     try {
       if (editProveedor) {
-        // PUT para actualizar
-        console.log("Actualizado:", editProveedor.id, form);
-        await axios.put(`${API}/proveedor/${editProveedor.id}`, form, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await updateProveedor(editProveedor.id, form);
       } else {
-        // POST para crear
-        await axios.post(`${API}/proveedor`, form, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await createProveedor(form);
       }
       setModalOpen(false);
       setEditProveedor(null);
@@ -177,11 +162,7 @@ export default function ProveedorCrud() {
   const handleDelete = async (proveedor) => {
     if (window.confirm(`¿Eliminar proveedor "${proveedor.nomProveedor}"?`)) {
       try {
-        await axios.delete(`${API}/proveedor/${proveedor.id}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await deleteProveedor(proveedor.id);
         fetchProveedores(page);
       } catch (e) {
         alert("Error eliminando proveedor");

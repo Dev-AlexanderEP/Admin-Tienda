@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -18,11 +17,16 @@ import TallasModal from "./TallasModal";
 import PrendaFormModal from "./PrendaFormModal";
 import ImagenesModal from "./ImagenesModal";
 import PrendaUpdateFormModal from "./PrendaUpdateFormModal";
-
-// const API = "http://localhost:8080/api/v1";
-const API = "https://mixmatch.zapto.org/api/v1";
-
-const IMG_BASE = "/";
+import {
+  getPrendasPaginado,
+  createPrenda,
+  deletePrenda,
+  eliminarCarpeta,
+  getGeneros,
+} from "../../Api/prendas";
+import { getMarcas } from "../../Api/marcas";
+import { getCategorias } from "../../Api/categorias";
+import { getProveedores } from "../../Api/proveedores";
 
 export default function PrendaCrud() {
   const [prendas, setPrendas] = useState([]);
@@ -46,8 +50,6 @@ export default function PrendaCrud() {
   const [proveedores, setProveedores] = useState([]);
   const [generos, setGeneros] = useState([]);
 
-  const accessToken = localStorage.getItem("accessToken");
-
   // Cargar selects
   const fetchSelects = async () => {
     try {
@@ -57,26 +59,10 @@ export default function PrendaCrud() {
         { data: dataProveedores },
         { data: dataGeneros },
       ] = await Promise.all([
-        axios.get(`${API}/marcas`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        }),
-        axios.get(`${API}/categorias`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        }),
-        axios.get(`${API}/proveedores`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        }),
-        axios.get(`${API}/generos`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        }),
+        getMarcas(),
+        getCategorias(),
+        getProveedores(),
+        getGeneros(),
       ]);
       setMarcas(Array.isArray(dataMarcas.object) ? dataMarcas.object : []);
       setCategorias(Array.isArray(dataCategorias.object) ? dataCategorias.object : []);
@@ -94,12 +80,7 @@ export default function PrendaCrud() {
   const fetchPrendas = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/prendas/paginado`, {
-        params: { page, size: 10 },
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      const { data } = await getPrendasPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
         setPrendas(data.object.content);
         setTotalPages(data.object.totalPages || 1);
@@ -131,11 +112,7 @@ export default function PrendaCrud() {
   // CREAR Prenda
   const handleSave = async (formData) => {
     try {
-      await axios.post(`${API}/prenda`, formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      await createPrenda(formData);
       setModalOpen(false);
       fetchPrendas(page);
     } catch (e) {
@@ -158,27 +135,16 @@ export default function PrendaCrud() {
     )
       return;
     try {
-      // 1. Elimina la carpeta de imágenes (ruta relativa extraída de la imagen principal)
       if (prenda?.imagen?.principal) {
         let path = prenda.imagen.principal.replace(/^\/?uploads\//, "");
         let arr = path.split("/");
-        arr.pop(); // quita el archivo
-        const carpetaRel = arr.join("/"); // ejemplo: "Casacas/123312"
+        arr.pop();
+        const carpetaRel = arr.join("/");
         if (carpetaRel) {
-          await axios.delete(`${API}/archivos/eliminar-carpeta`, {
-            params: { rutaRelativa: carpetaRel },
-            headers: {
-              Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-            },        
-          });
+          await eliminarCarpeta(carpetaRel);
         }
       }
-      // 2. Elimina la prenda
-      await axios.delete(`${API}/prenda/${prenda.id}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      await deletePrenda(prenda.id);
       fetchPrendas(page);
     } catch (e) {
       alert("Error eliminando prenda");

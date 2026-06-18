@@ -1,17 +1,11 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, UploadCloud, Check } from "lucide-react";
-import axios from "axios";
+import { uploadArchivo as uploadArchivoApi, updateImagen } from "../../Api/prendas";
 
-// const API = "http://localhost:8080/api/v1";
-const API = "https://mixmatch.zapto.org/api/v1";
-// const IMG_BASE = "http://localhost:8080/"; // Cambia si es necesario
-const IMG_BASE = "https://mixmatch.zapto.org/"; // Cambia si es necesario
+const IMG_BASE = "https://mixmatch.zapto.org/";
 
 export default function ImagenesModal({ open, onClose, imagen }) {
-    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
-
-    
   // State para inputs de archivo y previews
   const [files, setFiles] = useState({
     principal: null,
@@ -63,30 +57,14 @@ export default function ImagenesModal({ open, onClose, imagen }) {
     const nombreArchivo = parts[parts.length - 1];
 
     try {
-      // 1. Subir el nuevo archivo al backend (sobrescribe)
       const formData = new FormData();
       formData.append("archivo", files[type]);
       formData.append("subcarpeta", subcarpeta);
       formData.append("nombreArchivo", nombreArchivo);
+      await uploadArchivoApi(formData);
 
-      await axios.post(`${API}/archivos/upload`, formData, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-         },
-      });
-
-      // 2. Hacer PUT para actualizar el registro "imagen"
-      // El nombre y path no cambian: solo se reemplaza el archivo físico en el servidor.
-      // El backend no necesita el campo actualizado, porque la URL no cambia, pero igual puedes reenviar todo el objeto imagen actual.
       const imagenUpdated = { ...imagen };
-      // Opcional: podrías actualizar la fecha/modificar otros campos si deseas.
-
-      await axios.put(`${API}/imagen/${imagen.id}`, imagenUpdated, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      await updateImagen(imagen.id, imagenUpdated);
 
       alert("Archivo actualizado correctamente.");
       setFiles((prev) => ({ ...prev, [type]: null }));

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Shirt, Check, UploadCloud } from "lucide-react";
-import axios from "axios";
-
-// const API = "http://localhost:8080/api/v1";
-const API = "https://mixmatch.zapto.org/api/v1";
+import { uploadArchivo as uploadArchivoApi, createImagen } from "../../Api/prendas";
 
 
 export default function PrendaFormModal({
@@ -92,8 +89,6 @@ export default function PrendaFormModal({
       });
     }
   }, [open]);
-    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
-
   // URL generator when selecting files
   useEffect(() => {
     if (!form.categoriaId) return;
@@ -163,9 +158,7 @@ export default function PrendaFormModal({
     formData.append("archivo", file);
     formData.append("subcarpeta", subcarpeta);
     formData.append("nombreArchivo", nombreArchivo);
-    await axios.post(`${API}/archivos/upload`, formData, {
-      headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${accessToken}` },
-    });
+    await uploadArchivoApi(formData);
     return `uploads/${subcarpeta}/${nombreArchivo}`;
   };
 
@@ -235,11 +228,7 @@ export default function PrendaFormModal({
         video: videoUrl,
       };
 
-      const res = await axios.post(`${API}/imagen`, imagenData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      const res = await createImagen(imagenData);
       setImagenUploading(false);
       if (res.data.object && res.data.object.id) {
         setForm((f) => ({ ...f, imagenId: res.data.object.id }));

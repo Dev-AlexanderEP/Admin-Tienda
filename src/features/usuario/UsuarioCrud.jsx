@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -14,9 +13,13 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-const API = "http://localhost:8080/api/v1";
-// const API = "https://mixmatch.zapto.org/api/v1";
+import {
+  getUsuariosPaginado,
+  buscarUsuarios as buscarUsuariosApi,
+  createUsuario,
+  updateUsuario,
+  deleteUsuario,
+} from "../../Api/usuarios";
 
 function UsuarioFormModal({ open, onClose, onSubmit, usuario }) {
   const [form, setForm] = useState({
@@ -183,8 +186,6 @@ export default function UsuarioCrud() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editUsuario, setEditUsuario] = useState(null);
-    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
-
   // Buscadores
   const [searchId, setSearchId] = useState("");
   const [searchNombre, setSearchNombre] = useState("");
@@ -196,44 +197,39 @@ export default function UsuarioCrud() {
 
   // Buscar usuarios con API personalizada
   const buscarUsuarios = async () => {
-  setLoading(true);
-  try {
-    const params = {};
-    if (searchId) params.id = searchId;
-    if (searchNombre) params.nombreUsuario = searchNombre;
-    if (searchEmail) params.email = searchEmail;
+    setLoading(true);
+    try {
+      const params = {};
+      if (searchId) params.id = searchId;
+      if (searchNombre) params.nombreUsuario = searchNombre;
+      if (searchEmail) params.email = searchEmail;
 
-    const { data } = await axios.get(`${API}/usuarios`, { params, headers: { Authorization: `Bearer ${accessToken}` } });
-
-    // El array viene en data.object
-    if (Array.isArray(data.object)) {
-      setUsuarios(data.object);
-      setTotalPages(1);
-      setPage(0);
-    } else {
+      const { data } = await buscarUsuariosApi(params);
+      if (Array.isArray(data.object)) {
+        setUsuarios(data.object);
+        setTotalPages(1);
+        setPage(0);
+      } else {
+        setUsuarios([]);
+        setTotalPages(1);
+        setPage(0);
+      }
+    } catch (e) {
       setUsuarios([]);
       setTotalPages(1);
       setPage(0);
     }
-  } catch (e) {
-    setUsuarios([]);
-    setTotalPages(1);
-    setPage(0);
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   // Fetch paginado normal
-    const fetchUsuarios = async (page = 0) => {
+  const fetchUsuarios = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/usuarios`, {
-        params: { pageNo: page + 1 }, // Ajustar a 1-indexed
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const { data } = await getUsuariosPaginado(page);
       setUsuarios(data.object.data || []);
       setTotalPages(data.object.totalPages || 1);
-      setPage(data.object.pageNumber - 1); // Ajustar a 0-indexed
+      setPage(data.object.pageNumber - 1);
     } catch (e) {
       console.error("Error cargando usuarios:", e);
       setUsuarios([]);
@@ -264,18 +260,14 @@ export default function UsuarioCrud() {
   const handleSave = async (form) => {
     try {
       if (editUsuario) {
-        // PUT para actualizar
         const payload = {
           nombreUsuario: form.nombreUsuario,
           email: form.email,
           rol: form.rol,
           activo: form.activo,
         };
-        await axios.put(`${API}/usuario/${editUsuario.id}`, payload, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        await updateUsuario(editUsuario.id, payload);
       } else {
-        // POST para crear
         const payload = {
           nombreUsuario: form.nombreUsuario,
           email: form.email,
@@ -283,9 +275,7 @@ export default function UsuarioCrud() {
           rol: form.rol,
           activo: form.activo,
         };
-        await axios.post(`${API}/usuarios/create`, payload, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        await createUsuario(payload);
       }
       setModalOpen(false);
       setEditUsuario(null);
@@ -302,9 +292,7 @@ export default function UsuarioCrud() {
   const handleDelete = async (usuario) => {
     if (window.confirm(`¿Eliminar usuario ${usuario.nombreUsuario}?`)) {
       try {
-        await axios.delete(`${API}/usuario/${usuario.id}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        await deleteUsuario(usuario.id);
         if (isAnySearchActive) {
           buscarUsuarios();
         } else {

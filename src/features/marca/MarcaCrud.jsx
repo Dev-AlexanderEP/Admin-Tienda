@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -9,8 +8,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-const API = "http://localhost:8080/api/v1";
+import {
+  getMarcasPaginado,
+  createMarca,
+  updateMarca,
+  deleteMarca,
+} from "../../Api/marcas";
 
 function MarcaFormModal({ open, onClose, onSubmit, marca }) {
   const [form, setForm] = useState({
@@ -114,18 +117,11 @@ export default function MarcaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editMarca, setEditMarca] = useState(null);
 
-  const accessToken = localStorage.getItem("accessToken");
-
   // Fetch paginado
   const fetchMarcas = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/marcas/paginado`, {
-        params: { page, size: 10 },
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      const { data } = await getMarcasPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
         setMarcas(data.object.content);
         setTotalPages(data.object.totalPages || 1);
@@ -151,19 +147,9 @@ export default function MarcaCrud() {
   const handleSave = async (form) => {
     try {
       if (editMarca) {
-        // PUT para actualizar
-        await axios.put(`${API}/marca/${editMarca.id}`, form,{
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await updateMarca(editMarca.id, form);
       } else {
-        // POST para crear
-        await axios.post(`${API}/marca`, form, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await createMarca(form);
       }
       setModalOpen(false);
       setEditMarca(null);
@@ -176,11 +162,7 @@ export default function MarcaCrud() {
   const handleDelete = async (marca) => {
     if (window.confirm(`¿Eliminar marca "${marca.nomMarca}"?`)) {
       try {
-        await axios.delete(`${API}/marca/${marca.id}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await deleteMarca(marca.id);
         fetchMarcas(page);
       } catch (e) {
         alert("Error eliminando marca");

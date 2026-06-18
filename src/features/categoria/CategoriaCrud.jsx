@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -9,9 +8,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-// const API = "/api/v1";
-const API = "http://localhost:8080/api/v1";
+import {
+  getCategoriasPaginado,
+  createCategoria,
+  updateCategoria,
+  deleteCategoria,
+} from "../../Api/categorias";
 
 function CategoriaFormModal({ open, onClose, onSubmit, categoria }) {
   const [form, setForm] = useState({
@@ -115,18 +117,11 @@ export default function CategoriaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editCategoria, setEditCategoria] = useState(null);
 
-  const accessToken = localStorage.getItem("accessToken");
-
   // Fetch paginado
   const fetchCategorias = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/categorias/paginado`, {
-        params: { page, size: 10 },
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      const { data } = await getCategoriasPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
         setCategorias(data.object.content);
         setTotalPages(data.object.totalPages || 1);
@@ -152,19 +147,9 @@ export default function CategoriaCrud() {
   const handleSave = async (form) => {
     try {
       if (editCategoria) {
-        // PUT para actualizar
-        await axios.put(`${API}/categoria/${editCategoria.id}`, form, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization  
-          },
-        });
+        await updateCategoria(editCategoria.id, form);
       } else {
-        // POST para crear
-        await axios.post(`${API}/categoria`, form, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await createCategoria(form);
       }
       setModalOpen(false);
       setEditCategoria(null);
@@ -177,11 +162,7 @@ export default function CategoriaCrud() {
   const handleDelete = async (categoria) => {
     if (window.confirm(`¿Eliminar categoría "${categoria.nomCategoria}"?`)) {
       try {
-        await axios.delete(`${API}/categoria/${categoria.id}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await deleteCategoria(categoria.id);
         fetchCategorias(page);
       } catch (e) {
         alert("Error eliminando categoría");

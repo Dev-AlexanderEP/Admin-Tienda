@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Pencil,
   Trash2,
@@ -14,8 +13,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Table from "../../components/Table";
-
-const API = "/api/v1";
+import {
+  getDatosPaginado,
+  createDato,
+  updateDato,
+  deleteDato,
+} from "../../Api/datosPersonales";
 
 function DatosPersonalesFormModal({ open, onClose, onSubmit, datos }) {
   const [form, setForm] = useState({
@@ -274,9 +277,7 @@ export default function DatosPersonalesCrud() {
   const fetchDatos = async (page = 0) => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API}/datos-personales/paginado`, {
-        params: { page, size: 10 },
-      });
+      const { data } = await getDatosPaginado(page);
       if (data.object && Array.isArray(data.object.content)) {
         setDatosList(data.object.content);
         setTotalPages(data.object.totalPages || 1);
@@ -302,11 +303,9 @@ export default function DatosPersonalesCrud() {
   const handleSave = async (form) => {
     try {
       if (editDatos) {
-        // PUT para actualizar
-        await axios.put(`${API}/dato-personal/${editDatos.id}`, form);
+        await updateDato(editDatos.id, form);
       } else {
-        // POST para crear
-        await axios.post(`${API}/dato-personal`, form);
+        await createDato(form);
       }
       setModalOpen(false);
       setEditDatos(null);
@@ -319,7 +318,7 @@ export default function DatosPersonalesCrud() {
   const handleDelete = async (dato) => {
     if (window.confirm(`¿Eliminar datos personales de ${dato.nombres} ${dato.apellidos}?`)) {
       try {
-        await axios.delete(`${API}/dato-personal/${dato.id}`);
+        await deleteDato(dato.id);
         fetchDatos(page);
       } catch (e) {
         alert("Error eliminando datos personales");

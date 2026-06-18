@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
-import axios from "axios";
-
-// const API = "http://localhost:8080/api/v1";
-const API = "https://mixmatch.zapto.org/api/v1";
+import { updatePrenda, updateImagen, renombrarCarpeta } from "../../Api/prendas";
 
 
 export default function PrendaUpdateFormModal({
@@ -28,7 +25,6 @@ export default function PrendaUpdateFormModal({
     activo: true,
   });
   const [loading, setLoading] = useState(false);
-    const accessToken = localStorage.getItem("accessToken"); // Obtener el token del localStorage
 
   // Para saber si renombrar carpeta
   const [nombreAntiguo, setNombreAntiguo] = useState("");
@@ -88,17 +84,7 @@ export default function PrendaUpdateFormModal({
         nombreFormateado !== nombreAntiguo
       ) {
         nuevoNombreCarpeta = nombreFormateado;
-        // PUT a la API de renombrar carpeta (rutaBase relativa!)
-        await axios.put(`${API}/archivos/renombrar-carpeta`, null, {
-          params: {
-            rutaBase,
-            nombreAntiguo,
-            nombreNuevo: nuevoNombreCarpeta,
-          },
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-          },
-        });
+        await renombrarCarpeta(rutaBase, nombreAntiguo, nuevoNombreCarpeta);
         hizoRenombrado = true;
       }
 
@@ -120,8 +106,7 @@ export default function PrendaUpdateFormModal({
           img2: `uploads/${relPath}/${nuevoNombreBase}T.webp`,
           video: `uploads/${relPath}/${nuevoNombreBase}V.${videoExt}`,
         };
-        // PUT imagen (actualiza las rutas)
-        await axios.put(`${API}/imagen/${prenda.imagen.id}`, imagenBody);
+        await updateImagen(prenda.imagen.id, imagenBody);
       }
 
       // Construir body con los datos editables y los que no cambian
@@ -139,11 +124,7 @@ export default function PrendaUpdateFormModal({
         activo: !!form.activo,
       };
 
-      await axios.put(`${API}/prenda/${prenda.id}`, body, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Agregar el encabezado Authorization
-        },
-      });
+      await updatePrenda(prenda.id, body);
       if (typeof onUpdated === "function") onUpdated();
       onClose();
     } catch (e) {
