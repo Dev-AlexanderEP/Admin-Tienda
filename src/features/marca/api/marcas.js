@@ -1,16 +1,19 @@
 import api, { authHeader } from "../../../lib/axiosConfig";
 
-export const getMarcasPaginado = (page, size = 10) =>
-  api.get("/marcas/paginado", { params: { page, size }, headers: authHeader() });
+export const getMarcasPaginado = (page = 1, pageSize = 10) =>
+  api.get("/api/marcas", { params: { page, pageSize }, headers: authHeader() });
 
 export const getMarcas = () =>
-  api.get("/marcas", { headers: authHeader() });
+  api.get("/api/marcas", { headers: authHeader() });
+
+export const getMarcaById = (id) =>
+  api.get(`/api/marcas/${id}`, { headers: authHeader() });
 
 export const createMarca = (form) =>
-  api.post("/marca", form, { headers: authHeader() });
+  api.post("/api/marcas", form, { headers: authHeader() });
 
 export const updateMarca = (id, form) =>
-  api.put(`/marca/${id}`, form, { headers: authHeader() });
+  api.put(`/api/marcas/${id}`, form, { headers: authHeader() });
 
 export const deleteMarca = (id) =>
-  api.delete(`/marca/${id}`, { headers: authHeader() });
+  api.delete(`/api/marcas/${id}`, { headers: authHeader() });

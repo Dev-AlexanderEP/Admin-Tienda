@@ -1,16 +1,19 @@
 import api, { authHeader } from "../../../lib/axiosConfig";
 
-export const getProveedoresPaginado = (page, size = 10) =>
-  api.get("/proveedores/paginado", { params: { page, size }, headers: authHeader() });
+export const getProveedoresPaginado = (page = 1, pageSize = 10) =>
+  api.get("/api/proveedores", { params: { page, pageSize }, headers: authHeader() });
 
 export const getProveedores = () =>
-  api.get("/proveedores", { headers: authHeader() });
+  api.get("/api/proveedores", { headers: authHeader() });
+
+export const getProveedorById = (id) =>
+  api.get(`/api/proveedores/${id}`, { headers: authHeader() });
 
 export const createProveedor = (form) =>
-  api.post("/proveedor", form, { headers: authHeader() });
+  api.post("/api/proveedores", form, { headers: authHeader() });
 
 export const updateProveedor = (id, form) =>
-  api.put(`/proveedor/${id}`, form, { headers: authHeader() });
+  api.put(`/api/proveedores/${id}`, form, { headers: authHeader() });
 
 export const deleteProveedor = (id) =>
-  api.delete(`/proveedor/${id}`, { headers: authHeader() });
+  api.delete(`/api/proveedores/${id}`, { headers: authHeader() });

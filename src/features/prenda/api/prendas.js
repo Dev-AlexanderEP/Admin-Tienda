@@ -1,36 +1,38 @@
 import api, { authHeader } from "../../../lib/axiosConfig";
 
-export const getPrendasPaginado = (page, size = 10) =>
-  api.get("/prendas/paginado", { params: { page, size }, headers: authHeader() });
+export const getPrendasPaginado = (page = 1, pageSize = 10) =>
+  api.get("/api/prendas", { params: { page, pageSize }, headers: authHeader() });
+
+export const getPrendaDetalle = (id) =>
+  api.get(`/api/prendas/${id}/detalle`, { headers: authHeader() });
 
 export const createPrenda = (body) =>
-  api.post("/prenda", body, { headers: authHeader() });
+  api.post("/api/prendas", body, { headers: authHeader() });
 
 export const updatePrenda = (id, body) =>
-  api.put(`/prenda/${id}`, body, { headers: authHeader() });
+  api.put(`/api/prendas/${id}`, body, { headers: authHeader() });
 
 export const deletePrenda = (id) =>
-  api.delete(`/prenda/${id}`, { headers: authHeader() });
+  api.delete(`/api/prendas/${id}`, { headers: authHeader() });
 
 export const getGeneros = () =>
-  api.get("/generos", { headers: authHeader() });
+  api.get("/api/generos", { headers: authHeader() });
 
-export const uploadArchivo = (formData) =>
-  api.post("/archivos/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data", ...authHeader() },
-  });
-
-export const createImagen = (imagenData) =>
-  api.post("/imagen", imagenData, { headers: authHeader() });
-
-export const updateImagen = (id, imagenData) =>
-  api.put(`/imagen/${id}`, imagenData, { headers: authHeader() });
-
-export const eliminarCarpeta = (rutaRelativa) =>
-  api.delete("/archivos/eliminar-carpeta", { params: { rutaRelativa }, headers: authHeader() });
-
-export const renombrarCarpeta = (rutaBase, nombreAntiguo, nombreNuevo) =>
-  api.put("/archivos/renombrar-carpeta", null, {
-    params: { rutaBase, nombreAntiguo, nombreNuevo },
+export const uploadImagen = (prendaId, archivo, tipo) => {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+  formData.append("tipo", tipo);
+  return api.post(`/api/prendas/${prendaId}/imagenes`, formData, {
     headers: authHeader(),
   });
+};
+
+// Crea registro de imagen con URL directa (sin subida de archivo)
+export const createImagen = ({ prendaId, tipo, url, orden }) =>
+  api.post("/api/prendaImagenes", { prendaId, tipo, url, orden }, { headers: authHeader() });
+
+export const updateImagen = (id, { tipo, url, orden }) =>
+  api.put(`/api/prendaImagenes/${id}`, { tipo, url, orden }, { headers: authHeader() });
+
+export const deleteImagen = (id) =>
+  api.delete(`/api/prendaImagenes/${id}`, { headers: authHeader() });
