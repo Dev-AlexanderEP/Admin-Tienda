@@ -1,15 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Download, Package, Filter, X } from "lucide-react";
 import { downloadReporteStock, triggerDownload } from "../api/reportes";
+import { getGenerosPaginado } from "../../genero/api/generos";
+import { getCategorias } from "../../categoria/api/categorias";
 
 const EMPTY = { nombre: "", genero: "", categoria: "" };
 
 export default function ReporteStockFeature() {
-  const [filters, setFilters] = useState(EMPTY);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  const [success, setSuccess] = useState(false);
+  const [filters, setFilters]     = useState(EMPTY);
+  const [generos, setGeneros]     = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState("");
+  const [success, setSuccess]     = useState(false);
+
+  useEffect(() => {
+    const fetchOpciones = async () => {
+      const [genRes, catRes] = await Promise.allSettled([
+        getGenerosPaginado(1, 100),
+        getCategorias(),
+      ]);
+
+      if (genRes.status === "fulfilled") {
+        const raw = genRes.value.data;
+        const items = Array.isArray(raw?.data) ? raw.data : (raw?.data?.items ?? []);
+        setGeneros(items);
+      }
+      if (catRes.status === "fulfilled") {
+        const raw = catRes.value.data;
+        const items = Array.isArray(raw?.data) ? raw.data : (raw?.data?.items ?? []);
+        setCategorias(items);
+      }
+    };
+    fetchOpciones();
+  }, []);
 
   const hasFilters = Object.values(filters).some((v) => v.trim() !== "");
 
@@ -43,6 +68,9 @@ export default function ReporteStockFeature() {
     }
   };
 
+  const selectClass =
+    "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white";
+
   return (
     <div className="p-6 max-w-2xl">
       <div className="flex items-center gap-3 mb-2">
@@ -68,25 +96,48 @@ export default function ReporteStockFeature() {
             </button>
           )}
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { name: "nombre",    label: "Nombre de prenda",  placeholder: "Ej: polo" },
-            { name: "genero",    label: "Género",            placeholder: "Ej: Mujer" },
-            { name: "categoria", label: "Categoría",         placeholder: "Ej: Tops" },
-          ].map(({ name, label, placeholder }) => (
-            <div key={name}>
-              <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
-              <input
-                type="text"
-                name={name}
-                value={filters[name]}
-                onChange={handleChange}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-              />
-            </div>
-          ))}
+          {/* Nombre — texto libre */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">Nombre de prenda</label>
+            <input
+              type="text"
+              name="nombre"
+              value={filters.nombre}
+              onChange={handleChange}
+              placeholder="Ej: polo"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+
+          {/* Género — select */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">Género</label>
+            <select name="genero" value={filters.genero} onChange={handleChange} className={selectClass}>
+              <option value="">Todos los géneros</option>
+              {generos.map((g) => (
+                <option key={g.id} value={g.nomGenero}>
+                  {g.nomGenero}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Categoría — select */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">Categoría</label>
+            <select name="categoria" value={filters.categoria} onChange={handleChange} className={selectClass}>
+              <option value="">Todas las categorías</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.nomCategoria}>
+                  {c.nomCategoria}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
+
         {hasFilters && (
           <p className="text-xs text-gray-400 mt-3">
             El reporte se filtrará por:{" "}
