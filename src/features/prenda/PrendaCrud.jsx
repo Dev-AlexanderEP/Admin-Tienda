@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Pencil,
   Trash2,
-  Check,
-  X,
   Shirt,
   Eye,
   Layers,
@@ -11,22 +9,19 @@ import {
   ToggleRight,
   Plus,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Table from "../../components/Table";
 import TallasModal from "./TallasModal";
 import PrendaFormModal from "./PrendaFormModal";
 import ImagenesModal from "./ImagenesModal";
 import PrendaUpdateFormModal from "./PrendaUpdateFormModal";
-import {
-  getPrendasPaginado,
-  createPrenda,
-  deletePrenda,
-  eliminarCarpeta,
-  getGeneros,
-} from "./api/prendas";
+import { getPrendasPaginado, deletePrenda, getPrendaDetalle, getGeneros } from "./api/prendas";
+import { deletePrendaTalla } from "./api/prendaTallas";
 import { getMarcas } from "../marca/api/marcas";
 import { getCategorias } from "../categoria/api/categorias";
 import { getProveedores } from "../proveedor/api/proveedores";
+
+const PAGE_SIZE = 10;
 
 export default function PrendaCrud() {
   const [prendas, setPrendas] = useState([]);
@@ -34,23 +29,16 @@ export default function PrendaCrud() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Para modal imágenes y tallas
-  const [imagenesModal, setImagenesModal] = useState({ open: false, imagen: null });
-  const [tallasModal, setTallasModal] = useState({ open: false, tallas: null });
-
-  // Modal de formulario (crear)
+  const [imagenesModal, setImagenesModal] = useState({ open: false, prendaId: null });
+  const [tallasModal, setTallasModal] = useState({ open: false, tallas: null, prendaId: null });
   const [modalOpen, setModalOpen] = useState(false);
-
-  // Modal de edición
   const [editModal, setEditModal] = useState({ open: false, prenda: null });
 
-  // Select options
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [generos, setGeneros] = useState([]);
 
-  // Cargar selects
   const fetchSelects = async () => {
     try {
       const [
@@ -64,11 +52,11 @@ export default function PrendaCrud() {
         getProveedores(),
         getGeneros(),
       ]);
-      setMarcas(Array.isArray(dataMarcas.object) ? dataMarcas.object : []);
-      setCategorias(Array.isArray(dataCategorias.object) ? dataCategorias.object : []);
-      setProveedores(Array.isArray(dataProveedores.object) ? dataProveedores.object : []);
-      setGeneros(Array.isArray(dataGeneros.object) ? dataGeneros.object : []);
-    } catch (e) {
+      setMarcas(Array.isArray(dataMarcas.data) ? dataMarcas.data : []);
+      setCategorias(Array.isArray(dataCategorias.data) ? dataCategorias.data : []);
+      setProveedores(Array.isArray(dataProveedores.data) ? dataProveedores.data : []);
+      setGeneros(Array.isArray(dataGeneros.data) ? dataGeneros.data : []);
+    } catch {
       setMarcas([]);
       setCategorias([]);
       setProveedores([]);
@@ -76,24 +64,20 @@ export default function PrendaCrud() {
     }
   };
 
-  // Fetch paginado
-  const fetchPrendas = async (page = 0) => {
+  const fetchPrendas = async (currentPage = 0) => {
     setLoading(true);
     try {
-      const { data } = await getPrendasPaginado(page);
-      if (data.object && Array.isArray(data.object.content)) {
-        setPrendas(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
+      const { data } = await getPrendasPaginado(currentPage + 1, PAGE_SIZE);
+      if (Array.isArray(data?.data)) {
+        setPrendas(data.data);
+        setTotalPages(data?.metadata?.totalPages || 1);
       } else {
         setPrendas([]);
         setTotalPages(1);
-        setPage(0);
       }
-    } catch (e) {
+    } catch {
       setPrendas([]);
       setTotalPages(1);
-      setPage(0);
     }
     setLoading(false);
   };
@@ -104,50 +88,40 @@ export default function PrendaCrud() {
   }, [page]);
 
   useEffect(() => {
-    if (modalOpen || editModal.open) {
-      fetchSelects();
-    }
+    if (modalOpen || editModal.open) fetchSelects();
+    // eslint-disable-next-line
   }, [modalOpen, editModal.open]);
 
-  // CREAR Prenda
-  const handleSave = async (formData) => {
-    try {
-      await createPrenda(formData);
-      setModalOpen(false);
-      fetchPrendas(page);
-    } catch (e) {
-      alert("Error guardando prenda");
-    }
+  // PrendaFormModal maneja createPrenda + uploadImagen internamente
+  const handleSave = () => {
+    setModalOpen(false);
+    fetchPrendas(page);
   };
 
-  // EDITAR Prenda
-  const handleUpdate = async () => {
+  const handleUpdate = () => {
     setEditModal({ open: false, prenda: null });
     fetchPrendas(page);
   };
 
-  // ELIMINAR Prenda y carpeta de imágenes
   const handleDelete = async (prenda) => {
-    if (
-      !window.confirm(
-        "¿Seguro que quieres eliminar esta prenda? Se eliminarán también las imágenes."
-      )
-    )
+    if (!window.confirm("¿Seguro que quieres eliminar esta prenda? Se eliminarán sus tallas e imágenes."))
       return;
     try {
-      if (prenda?.imagen?.principal) {
-        let path = prenda.imagen.principal.replace(/^\/?uploads\//, "");
-        let arr = path.split("/");
-        arr.pop();
-        const carpetaRel = arr.join("/");
-        if (carpetaRel) {
-          await eliminarCarpeta(carpetaRel);
-        }
-      }
+      // 1. Obtener tallas asociadas y eliminarlas primero
+      const { data: detalle } = await getPrendaDetalle(prenda.id);
+      const tallas = detalle?.data?.tallas ?? [];
+      await Promise.all(tallas.map((t) => deletePrendaTalla(t.prendaTallaId)));
+
+      // 2. Eliminar la prenda (el backend elimina R2 automáticamente)
       await deletePrenda(prenda.id);
       fetchPrendas(page);
     } catch (e) {
-      alert("Error eliminando prenda");
+      const status = e?.response?.status;
+      if (status === 409) {
+        alert("No se puede eliminar: la prenda tiene descuentos o reseñas asociadas.");
+      } else {
+        alert("Error eliminando prenda");
+      }
     }
   };
 
@@ -168,8 +142,11 @@ export default function PrendaCrud() {
           <Plus className="h-5 w-5" /> Nueva prenda
         </motion.button>
       </div>
+
       <Table animKey={page + "-" + sortedPrendas.length}>
-        <Table.Header columns={["ID", "Nombre", "Descripción", "Marca", "Categoría", "Proveedor", "Género", "Precio", "Activo", "Imágenes", "Tallas", "Acciones"]} />
+        <Table.Header
+          columns={["ID", "Nombre", "Descripción", "Marca", "Categoría", "Proveedor", "Género", "Precio", "Activo", "Imágenes", "Tallas", "Acciones"]}
+        />
         <Table.Body loading={loading} colSpan={12} empty={sortedPrendas.length === 0} emptyText="Sin prendas">
           {sortedPrendas.map((p) => (
             <motion.tr
@@ -204,7 +181,7 @@ export default function PrendaCrud() {
                   whileTap={{ scale: 0.96 }}
                   title="Ver imágenes"
                   className="p-2 rounded hover:bg-blue-100 text-blue-700"
-                  onClick={() => setImagenesModal({ open: true, imagen: p.imagen })}
+                  onClick={() => setImagenesModal({ open: true, prendaId: p.id })}
                 >
                   <Eye className="h-4 w-4" />
                 </motion.button>
@@ -250,17 +227,17 @@ export default function PrendaCrud() {
           onNext={() => setPage(Math.min(page + 1, totalPages - 1))}
         />
       </Table>
-      {/* Modal para crear prenda */}
+
       <PrendaFormModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={handleSave}
+        onSuccess={handleSave}
         categorias={categorias}
         marcas={marcas}
         proveedores={proveedores}
         generos={generos}
       />
-      {/* Modal para editar prenda */}
+
       <PrendaUpdateFormModal
         open={editModal.open}
         onClose={() => setEditModal({ open: false, prenda: null })}
@@ -271,13 +248,13 @@ export default function PrendaCrud() {
         generos={generos}
         onUpdated={handleUpdate}
       />
-      {/* Modal imágenes */}
+
       <ImagenesModal
         open={imagenesModal.open}
-        imagen={imagenesModal.imagen}
-        onClose={() => setImagenesModal({ open: false, imagen: null })}
+        prendaId={imagenesModal.prendaId}
+        onClose={() => setImagenesModal({ open: false, prendaId: null })}
       />
-      {/* Modal tallas */}
+
       <TallasModal
         open={tallasModal.open}
         tallas={tallasModal.tallas}

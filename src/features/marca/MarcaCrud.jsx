@@ -109,6 +109,8 @@ function MarcaFormModal({ open, onClose, onSubmit, marca }) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function MarcaCrud() {
   const [marcas, setMarcas] = useState([]);
   const [page, setPage] = useState(0);
@@ -117,24 +119,20 @@ export default function MarcaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editMarca, setEditMarca] = useState(null);
 
-  // Fetch paginado
-  const fetchMarcas = async (page = 0) => {
+  const fetchMarcas = async (currentPage = 0) => {
     setLoading(true);
     try {
-      const { data } = await getMarcasPaginado(page);
-      if (data.object && Array.isArray(data.object.content)) {
-        setMarcas(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
+      const { data } = await getMarcasPaginado(currentPage + 1, PAGE_SIZE);
+      if (Array.isArray(data?.data)) {
+        setMarcas(data.data);
+        setTotalPages(data?.metadata?.totalPages || 1);
       } else {
         setMarcas([]);
         setTotalPages(1);
-        setPage(0);
       }
-    } catch (e) {
+    } catch {
       setMarcas([]);
       setTotalPages(1);
-      setPage(0);
     }
     setLoading(false);
   };

@@ -1,136 +1,59 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
-import { updatePrenda, updateImagen, renombrarCarpeta } from "./api/prendas";
+import { updatePrenda } from "./api/prendas";
 
+const schema = z.object({
+  nombre:      z.string().min(1, "Requerido"),
+  descripcion: z.string().min(1, "Requerido"),
+  precio:      z.coerce.number().positive("Debe ser mayor a 0"),
+  activo:      z.boolean(),
+  categoriaId: z.coerce.number().min(1, "Selecciona una categoría"),
+  marcaId:     z.coerce.number().min(1, "Selecciona una marca"),
+  proveedorId: z.coerce.number().min(1, "Selecciona un proveedor"),
+  generoId:    z.coerce.number().min(1, "Selecciona un género"),
+});
 
-export default function PrendaUpdateFormModal({
-  open,
-  onClose,
-  prenda,
-  marcas,
-  proveedores,
-  categorias,
-  generos,
-  onUpdated,
-}) {
-  const [form, setForm] = useState({
-    nombre: "",
-    descripcion: "",
-    marcaId: "",
-    proveedorId: "",
-    categoriaId: "",
-    generoId: "",
-    precio: "",
-    activo: true,
+export default function PrendaUpdateFormModal({ open, onClose, prenda, marcas, proveedores, categorias, generos, onUpdated }) {
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(schema),
   });
-  const [loading, setLoading] = useState(false);
-
-  // Para saber si renombrar carpeta
-  const [nombreAntiguo, setNombreAntiguo] = useState("");
-  const [rutaBase, setRutaBase] = useState("");
 
   useEffect(() => {
     if (open && prenda) {
-      setForm({
-        nombre: prenda.nombre || "",
-        descripcion: prenda.descripcion || "",
-        marcaId: prenda.marca?.id || "",
-        proveedorId: prenda.proveedor?.id || "",
-        categoriaId: prenda.categoria?.id || "",
-        generoId: prenda.genero?.id || "",
-        precio: prenda.precio || "",
-        activo: prenda.activo ?? true,
+      reset({
+        nombre:      prenda.nombre      ?? "",
+        descripcion: prenda.descripcion ?? "",
+        precio:      prenda.precio      ?? "",
+        activo:      prenda.activo      ?? true,
+        categoriaId: prenda.categoriaId ?? prenda.categoria?.id ?? "",
+        marcaId:     prenda.marcaId     ?? prenda.marca?.id     ?? "",
+        proveedorId: prenda.proveedorId ?? prenda.proveedor?.id ?? "",
+        generoId:    prenda.generoId    ?? prenda.genero?.id    ?? "",
       });
-
-      if (prenda.imagen?.principal) {
-        // ejemplo: uploads/Casacas/Camisa-Rosa/Camisa-RosaP.webp
-        let path = prenda.imagen.principal.replace(/^uploads\//, "");
-        let arr = path.split("/");
-        // arr = [Casacas, Camisa-Rosa, Camisa-RosaP.webp]
-        if (arr.length >= 3) {
-          // Ruta base relativa: uploads/Casacas
-          setRutaBase(`uploads/${arr[0]}`);
-          setNombreAntiguo(arr[1]);
-        } else {
-          setRutaBase("");
-          setNombreAntiguo("");
-        }
-      }
     }
-  }, [open, prenda]);
+  }, [open, prenda, reset]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const onSubmit = async (values) => {
     try {
-      let hizoRenombrado = false;
-      let nuevoNombreCarpeta = nombreAntiguo;
-
-      // Si cambió el nombre de la prenda, renombra la carpeta
-      const nombreFormateado = form.nombre.trim().replace(/\s+/g, "-");
-      if (
-        nombreAntiguo &&
-        rutaBase &&
-        nombreFormateado !== nombreAntiguo
-      ) {
-        nuevoNombreCarpeta = nombreFormateado;
-        await renombrarCarpeta(rutaBase, nombreAntiguo, nuevoNombreCarpeta);
-        hizoRenombrado = true;
-      }
-
-      // Actualiza las rutas en la entidad imagen si el nombre fue cambiado
-      if (hizoRenombrado && prenda.imagen) {
-        // Recalcula el path relativo
-        const relPath = `${rutaBase.split("/").pop()}/${nuevoNombreCarpeta}`;
-        const nuevoNombreBase = nuevoNombreCarpeta;
-        // El video puede no ser mp4, conserva la extensión si es así
-        const getVideoExtension = (v) =>
-          v ? v.split(".").pop() : "mp4";
-        const videoExt = getVideoExtension(prenda.imagen.video);
-
-        const imagenBody = {
-          id: prenda.imagen.id,
-          principal: `uploads/${relPath}/${nuevoNombreBase}P.webp`,
-          hover: `uploads/${relPath}/${nuevoNombreBase}H.webp`,
-          img1: `uploads/${relPath}/${nuevoNombreBase}S.webp`,
-          img2: `uploads/${relPath}/${nuevoNombreBase}T.webp`,
-          video: `uploads/${relPath}/${nuevoNombreBase}V.${videoExt}`,
-        };
-        await updateImagen(prenda.imagen.id, imagenBody);
-      }
-
-      // Construir body con los datos editables y los que no cambian
-      // PrendaRequestDto con todos los campos
-      const body = {
-        id: prenda.id,
-        nombre: form.nombre,
-        descripcion: form.descripcion,
-        imagenId: prenda.imagen?.id,
-        marcaId: Number(form.marcaId),
-        categoriaId: Number(form.categoriaId),
-        proveedorId: Number(form.proveedorId),
-        generoId: Number(form.generoId),
-        precio: Number(form.precio),
-        activo: !!form.activo,
-      };
-
-      await updatePrenda(prenda.id, body);
-      if (typeof onUpdated === "function") onUpdated();
+      await updatePrenda(prenda.id, {
+        nombre:      values.nombre,
+        descripcion: values.descripcion,
+        precio:      values.precio,
+        activo:      values.activo,
+        marcaId:     values.marcaId,
+        categoriaId: values.categoriaId,
+        proveedorId: values.proveedorId,
+        generoId:    values.generoId,
+      });
+      onUpdated?.();
       onClose();
     } catch (e) {
-      alert("Error al actualizar prenda");
+      alert(e?.response?.data?.message ?? "Error al actualizar prenda");
     }
-    setLoading(false);
   };
 
   if (!open || !prenda) return null;
@@ -139,154 +62,75 @@ export default function PrendaUpdateFormModal({
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       >
         <motion.div
           className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-[95vw] max-h-[90vh] overflow-auto relative"
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
+          initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         >
-          <button
-            className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
-            onClick={onClose}
-          >
+          <button className="absolute top-3 right-3 text-gray-500 hover:text-red-500" onClick={onClose}>
             <X />
           </button>
           <h2 className="text-lg font-semibold mb-4">Editar Prenda</h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label className="text-sm font-semibold">Nombre</label>
-              <input
-                type="text"
-                name="nombre"
-                value={form.nombre}
-                onChange={handleInputChange}
-                className="w-full border rounded px-2 py-1"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold">Descripción</label>
-              <textarea
-                name="descripcion"
-                value={form.descripcion}
-                onChange={handleInputChange}
-                className="w-full border rounded px-2 py-1"
-                required
-              />
-            </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+            <Field label="Nombre" error={errors.nombre}>
+              <input {...register("nombre")} className="w-full border rounded px-2 py-1" />
+            </Field>
+
+            <Field label="Descripción" error={errors.descripcion}>
+              <textarea {...register("descripcion")} className="w-full border rounded px-2 py-1" />
+            </Field>
+
             <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="text-sm font-semibold">Categoría</label>
-                <select
-                  name="categoriaId"
-                  value={form.categoriaId}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-2 py-1"
-                  required
-                >
+              <Field label="Categoría" error={errors.categoriaId} className="flex-1">
+                <select {...register("categoriaId")} className="w-full border rounded px-2 py-1">
                   <option value="">Selecciona</option>
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nomCategoria}
-                    </option>
-                  ))}
+                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.nomCategoria}</option>)}
                 </select>
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-semibold">Marca</label>
-                <select
-                  name="marcaId"
-                  value={form.marcaId}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-2 py-1"
-                  required
-                >
+              </Field>
+              <Field label="Marca" error={errors.marcaId} className="flex-1">
+                <select {...register("marcaId")} className="w-full border rounded px-2 py-1">
                   <option value="">Selecciona</option>
-                  {marcas.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nomMarca}
-                    </option>
-                  ))}
+                  {marcas.map((m) => <option key={m.id} value={m.id}>{m.nomMarca}</option>)}
                 </select>
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-semibold">Proveedor</label>
-                <select
-                  name="proveedorId"
-                  value={form.proveedorId}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-2 py-1"
-                  required
-                >
+              </Field>
+              <Field label="Proveedor" error={errors.proveedorId} className="flex-1">
+                <select {...register("proveedorId")} className="w-full border rounded px-2 py-1">
                   <option value="">Selecciona</option>
-                  {proveedores.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nomProveedor}
-                    </option>
-                  ))}
+                  {proveedores.map((p) => <option key={p.id} value={p.id}>{p.nomProveedor}</option>)}
                 </select>
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-semibold">Género</label>
-                <select
-                  name="generoId"
-                  value={form.generoId}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-2 py-1"
-                  required
-                >
+              </Field>
+              <Field label="Género" error={errors.generoId} className="flex-1">
+                <select {...register("generoId")} className="w-full border rounded px-2 py-1">
                   <option value="">Selecciona</option>
-                  {generos &&
-                    generos.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.nomGenero}
-                      </option>
-                    ))}
+                  {generos?.map((g) => <option key={g.id} value={g.id}>{g.nomGenero}</option>)}
                 </select>
-              </div>
+              </Field>
             </div>
-            <div>
-              <label className="text-sm font-semibold">Precio</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                name="precio"
-                value={form.precio}
-                onChange={handleInputChange}
-                className="w-full border rounded px-2 py-1"
-                required
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  name="activo"
-                  checked={form.activo}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                Activo
-              </label>
-            </div>
+
+            <Field label="Precio" error={errors.precio}>
+              <input type="number" step="0.01" min="0" {...register("precio")} className="w-full border rounded px-2 py-1" />
+            </Field>
+
+            <label className="flex items-center gap-2 mt-2">
+              <input type="checkbox" {...register("activo")} className="mr-2" />
+              Activo
+            </label>
+
             <div className="flex justify-end gap-2 mt-4">
               <button
                 type="button"
                 className="px-4 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
                 onClick={onClose}
-                disabled={loading}
+                disabled={isSubmitting}
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1"
-                disabled={loading}
+                disabled={isSubmitting}
               >
                 <Check className="h-4 w-4" /> Guardar
               </button>
@@ -295,5 +139,15 @@ export default function PrendaUpdateFormModal({
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function Field({ label, error, children, className = "" }) {
+  return (
+    <div className={className}>
+      <label className="text-sm font-semibold">{label}</label>
+      {children}
+      {error && <p className="text-xs text-red-500 mt-0.5">{error.message}</p>}
+    </div>
   );
 }

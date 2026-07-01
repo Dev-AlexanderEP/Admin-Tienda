@@ -109,6 +109,8 @@ function CategoriaFormModal({ open, onClose, onSubmit, categoria }) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function CategoriaCrud() {
   const [categorias, setCategorias] = useState([]);
   const [page, setPage] = useState(0);
@@ -117,24 +119,20 @@ export default function CategoriaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editCategoria, setEditCategoria] = useState(null);
 
-  // Fetch paginado
-  const fetchCategorias = async (page = 0) => {
+  const fetchCategorias = async (currentPage = 0) => {
     setLoading(true);
     try {
-      const { data } = await getCategoriasPaginado(page);
-      if (data.object && Array.isArray(data.object.content)) {
-        setCategorias(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
+      const { data } = await getCategoriasPaginado(currentPage + 1, PAGE_SIZE);
+      if (Array.isArray(data?.data)) {
+        setCategorias(data.data);
+        setTotalPages(data?.metadata?.totalPages || 1);
       } else {
         setCategorias([]);
         setTotalPages(1);
-        setPage(0);
       }
-    } catch (e) {
+    } catch {
       setCategorias([]);
       setTotalPages(1);
-      setPage(0);
     }
     setLoading(false);
   };

@@ -109,6 +109,8 @@ function ProveedorFormModal({ open, onClose, onSubmit, proveedor }) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function ProveedorCrud() {
   const [proveedores, setProveedores] = useState([]);
   const [page, setPage] = useState(0);
@@ -117,24 +119,20 @@ export default function ProveedorCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProveedor, setEditProveedor] = useState(null);
 
-  // Fetch paginado
-  const fetchProveedores = async (page = 0) => {
+  const fetchProveedores = async (currentPage = 0) => {
     setLoading(true);
     try {
-      const { data } = await getProveedoresPaginado(page);
-      if (data.object && Array.isArray(data.object.content)) {
-        setProveedores(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
+      const { data } = await getProveedoresPaginado(currentPage + 1, PAGE_SIZE);
+      if (Array.isArray(data?.data)) {
+        setProveedores(data.data);
+        setTotalPages(data?.metadata?.totalPages || 1);
       } else {
         setProveedores([]);
         setTotalPages(1);
-        setPage(0);
       }
-    } catch (e) {
+    } catch {
       setProveedores([]);
       setTotalPages(1);
-      setPage(0);
     }
     setLoading(false);
   };

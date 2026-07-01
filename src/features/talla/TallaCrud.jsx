@@ -109,6 +109,8 @@ function TallaFormModal({ open, onClose, onSubmit, talla }) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function TallaCrud() {
   const [tallas, setTallas] = useState([]);
   const [page, setPage] = useState(0);
@@ -117,25 +119,20 @@ export default function TallaCrud() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTalla, setEditTalla] = useState(null);
 
-  // Fetch paginado
-  const fetchTallas = async (page = 0) => {
+  const fetchTallas = async (currentPage = 0) => {
     setLoading(true);
     try {
-      const { data } = await getTallasPaginado(page);
-      if (data.object && Array.isArray(data.object.content)) {
-        setTallas(data.object.content);
-        setTotalPages(data.object.totalPages || 1);
-        setPage(data.object.page || 0);
+      const { data } = await getTallasPaginado(currentPage + 1, PAGE_SIZE);
+      if (Array.isArray(data?.data)) {
+        setTallas(data.data);
+        setTotalPages(data?.metadata?.totalPages || 1);
       } else {
         setTallas([]);
         setTotalPages(1);
-        setPage(0);
       }
-    } catch (e) {
+    } catch {
       setTallas([]);
       setTotalPages(1);
-      setPage(0);
-      alert("Error al obtener las tallas");
     }
     setLoading(false);
   };
