@@ -1,21 +1,19 @@
 import * as React from "react";
 import { Card, List, Typography } from "@material-tailwind/react";
 import {
-  User, MapPin, Shirt, Ruler, Tags, Landmark, ShoppingBag, Truck,
-  Percent, Code, ShoppingCart, CheckCircle, CreditCard, Banknote,
-  LogOut, ChevronRight, Users, Store, BarChart2, LineChart, PieChart, AreaChart,
+  User, Shirt, Ruler, Tags, Landmark, ShoppingBag, Truck,
+  Percent, Code, CheckCircle, CreditCard, Banknote,
+  LogOut, ChevronRight, Users, Store, FileDown, Package,
+  Star,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 
 const sections = [
   {
     title: "Usuario",
     icon: Users,
     subItems: [
-      { title: "Datos Personales", icon: User, path: "/usuario/datos-personales" },
-      { title: "Dirección", icon: MapPin, path: "/usuario/direccion" },
       { title: "Usuario", icon: User, path: "/usuario/usuario" },
     ],
   },
@@ -28,6 +26,8 @@ const sections = [
       { title: "Marca", icon: Landmark, path: "/prenda/marca" },
       { title: "Prenda", icon: Shirt, path: "/prenda/prenda" },
       { title: "Proveedor", icon: Store, path: "/prenda/proveedor" },
+      { title: "Género", icon: Users, path: "/prenda/genero" },
+      { title: "Reseñas", icon: Star, path: "/prenda/resenia" },
     ],
   },
   {
@@ -44,13 +44,8 @@ const sections = [
     title: "Venta",
     icon: ShoppingBag,
     subItems: [
-      { title: "Carrito", icon: ShoppingCart, path: "/venta/carrito" },
       { title: "Venta Realizada", icon: CheckCircle, path: "/venta/venta-realizada" },
       { title: "Envío", icon: Truck, path: "/venta/envio" },
-      { title: "Reporte Ventas (Barra)", icon: BarChart2, path: "/venta/reporte-barra" },
-      { title: "Reporte Ventas (Línea)", icon: LineChart, path: "/venta/reporte-linea" },
-      { title: "Reporte Ventas (Pie)", icon: PieChart, path: "/venta/reporte-pie" },
-      { title: "Reporte Ventas (Área)", icon: AreaChart, path: "/venta/reporte-area" },
     ],
   },
   {
@@ -58,7 +53,14 @@ const sections = [
     icon: CreditCard,
     subItems: [
       { title: "Método de Pago", icon: Banknote, path: "/pago/metodo-de-pago" },
-      { title: "Pagos Realizados", icon: CheckCircle, path: "/pago/pagos-realizados" },
+    ],
+  },
+  {
+    title: "Reportes",
+    icon: FileDown,
+    subItems: [
+      { title: "Stock", icon: Package, path: "/reporte/stock" },
+      { title: "Ventas", icon: ShoppingBag, path: "/reporte/ventas" },
     ],
   },
 ];
@@ -82,25 +84,9 @@ export default function Sidebar() {
     setOpenSections((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post(
-        "https://mixmatch.zapto.org/token",
-        new URLSearchParams({
-          username: "admin@example.com",
-          password: "123456",
-          grantType: "password",
-          withRefreshToken: true,
-        }),
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-      );
-      const { accessToken, refreshToken } = response.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-    } catch (error) {
-      console.error("Error al iniciar sesión:", error);
-      alert("Error al iniciar sesión");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    navigate("/login");
   };
 
   return (
@@ -176,18 +162,12 @@ export default function Sidebar() {
         ))}
         <hr className="my-4 border-gray-200" />
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
-          <List.Item className="text-red-500 hover:bg-red-50 cursor-pointer flex items-center">
-            <LogOut className="h-5 w-5 mr-2" />
-            Cerrar sesión
-          </List.Item>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
           <List.Item
-            className="text-blue-500 hover:bg-blue-50 cursor-pointer flex items-center"
-            onClick={handleLogin}
+            className="text-red-500 hover:bg-red-50 cursor-pointer flex items-center"
+            onClick={handleLogout}
           >
             <LogOut className="h-5 w-5 mr-2" />
-            Iniciar sesión
+            Cerrar sesión
           </List.Item>
         </motion.div>
       </List>
