@@ -48,7 +48,9 @@ export default function ImagenesModal({ open, onClose, prendaId }) {
   const handleFileChange = (e, key) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert("Máximo 10MB"); return; }
+    const isVideo = SLOTS.find((s) => s.key === key)?.accept === "video/*";
+    const maxMB = isVideo ? 100 : 10;
+    if (file.size > maxMB * 1024 * 1024) { alert(`Máximo ${maxMB}MB`); return; }
     setFiles((prev) => ({ ...prev, [key]: file }));
     setPreviews((prev) => ({ ...prev, [key]: URL.createObjectURL(file) }));
   };
