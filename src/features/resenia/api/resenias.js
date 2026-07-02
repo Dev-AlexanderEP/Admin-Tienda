@@ -6,6 +6,12 @@ export const getReseniasPaginado = (page = 1, pageSize = 10, filters = {}) =>
     headers: authHeader(),
   });
 
+export const contarPendientes = () =>
+  api.get("/api/Resenias", {
+    params: { page: 1, pageSize: 1, estado: "PENDIENTE" },
+    headers: authHeader(),
+  }).then((r) => r.data?.metadata?.totalCount ?? 0);
+
 export const deleteResenia = (id) =>
   api.delete(`/api/Resenias/${id}`, { headers: authHeader() });
 
